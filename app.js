@@ -84,9 +84,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       const prev=S.day;
       const active=S.streakDay===prev; // the lantern counted yesterday (see streakCheck)
       const gap=Math.max(1,Math.round((keyToTime(tk)-keyToTime(prev))/D));
-      if(!active||gap>1){if(S.streak>=2)S.lanternOut=tk;S.streak=0}
+      if((!active&&!restDay(prev))||gap>1){if(S.streak>=2)S.lanternOut=tk;S.streak=0}
       // Duolingo effect: count days in a row with nothing done (chosen tasks left undone, or no visit at all)
-      if(S.onboarded&&prev!==S.startDay){
+      if(S.onboarded&&restDay(prev)&&gap===1){} // a day off neither adds to the missed days nor wipes them
+      else if(S.onboarded&&prev!==S.startDay){
         const bad=!S.tasks.some(x=>x.done&&x.planned===prev);
         S.missStreak=bad?(S.missStreak||0)+gap:gap-1;
       }else S.missStreak=0;
@@ -98,6 +99,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       S.tails=gap===1&&tails.length?{day:tk,ids:tails}:null;
       S.today={energy:null,minimal:false,plan:null};S.lightsOff=false;
       S.letters=S.letters.filter(l=>l.kind==='week'&&!l.read);
+      if(S.rest)Object.keys(S.rest).forEach(k=>{if(keyToTime(k)<t-14*D)delete S.rest[k]});
       S.day=tk;
     }
     // repeating tasks show up in today on their own
@@ -106,7 +108,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     // health: the second evening in a row with nothing done — the owl falls ill
     if(!S.gone&&!tourOn){
       const m=S.missStreak||0;
-      if(!S.sick&&(m>=2||(m>=1&&doneToday()===0&&hourOf(t)>=19))){S.sick={since:t};pending.push('Сова заболела. Дела её не вылечат, нужно лекарство из лавки.')}
+      if(!S.sick&&!restDay(tk)&&(m>=2||(m>=1&&doneToday()===0&&hourOf(t)>=19))){S.sick={since:t};pending.push('Сова заболела. Дела её не вылечат, нужно лекарство из лавки.')}
       if(S.sick&&t>S.sick.since+(S.scarf?5:3)*D)S.gone='sick';
       else if(t-S.lastFed>3*D)S.gone='hungry';
       if(S.gone)return;
@@ -123,6 +125,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     S.tasks.forEach(x=>{if(x.reminder&&!x.reminded&&!x.done&&x.reminder<=t){x.reminded=true;pending.push(`Напоминание: «${x.title}»`)}});
   }
   const todayTasks=()=>S.tasks.filter(x=>x.planned===planDay());
+  // a declared day off («Сегодня без дел» in the morning talk): the owl is not sad or ill, the lantern waits; hunger still runs (Ilya, 18.11)
+  const restDay=k=>!!(S.rest&&S.rest[k]);
   const doneToday=()=>S.tasks.filter(x=>x.done&&x.planned===today()).length;
   /* ---------- the streak (the lantern by the owl) ----------
      A day counts when at least one task is done and every other task of the day has a fate:
@@ -155,7 +159,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     // after 23:00: chosen for today and nothing done
     const todays=S.tasks.filter(x=>x.planned===today());
     const failed=cl&&!first&&S.onboarded&&todays.length>0&&done===0;
-    const miss=done>0?0:(S.missStreak||0);
+    const miss=done>0||restDay(today())?0:(S.missStreak||0);
     const base=Math.max(waitLvl,emptyLvl,failed?2:0,Math.min(miss,2));
     const level=base||(morningLate?1:0);
     const partial=!cl&&items.length>0&&done>0&&!allDone&&h>=20;
@@ -280,6 +284,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(lanternN++)return LANTERN_TIPS[lanternTip++%LANTERN_TIPS.length];
     if(st==='full')return `Всё сделано! Мой фонарик горит золотом уже ${days}. Спасибо!`;
     if(st==='on')return `Мой фонарик горит ${days} подряд. Сегодня он не погаснет — спасибо тебе!`;
+    if(!done&&restDay(today()))return 'Сегодня мы отдыхаем. Фонарик подождёт до завтра.';
     if(done&&left)return `Почти зажгли! Ещё ${cnt(left,'дело','дела','дел')}: сделай или перенеси на завтра.`;
     if(st==='wait')return `Мой фонарик горит ${days} подряд. Поможешь ему сегодня? Без него мне темно.`;
     return 'Мой фонарик погас, и мне немножко темно. Поможешь зажечь? Нужно одно дело, а остальные — перенести.';
@@ -1359,8 +1364,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     pickList(items,{multi:false,custom:true},ch=>{const it=ch[0];if(it.key==='new'){S.tasks.push({id:uid(),title:it.title,list:hl?hl.id:'inbox',due:null,reminder:null,reminded:false,repeat:false,steps:[],planned:planDay(),done:false,doneAt:null,created:now()})}else applyChoice(it);
       S.today.minimal=true;say('Хорошо. Сегодня только это, и это уже забота о себе.');later(U9,700)})}
   function U2(){say(pick(['Понимаю. Тогда сегодня лёгкий день: одно дело, и этого достаточно.','Такое бывает. Давай возьмём одно дело. Больше сегодня и не нужно.']));
-    buttons([['Давай',U3],['Нет, возьму больше',U4]])}
-  function U3(){const c=candidates();say(c.length?'Какое одно дело возьмём?':'Напиши одно маленькое дело на сегодня.');pickList(c,{multi:false,custom:true},ch=>{applyChoice(ch[0]);S.today.minimal=true;U9()})}
+    buttons([['Давай',U3],['Нет, возьму больше',U4],['Сегодня отдохну',R1]])}
+  function U3(){const c=candidates();say(c.length?'Какое одно дело возьмём?':'Напиши одно маленькое дело на сегодня.');pickList(c,{multi:false,custom:true,extra:['Сегодня без дел',R1]},ch=>{applyChoice(ch[0]);S.today.minimal=true;U9()})}
   function U4(){
     const y=dayKey(now()-D),yd=S.tasks.filter(x=>x.done&&x.planned===y);
     if(yd.length)say(pick([`Вчера ты сделала ${cnt(yd.length,'дело','дела','дел')}, в том числе «${yd[0].title}». Здорово!`,`Вчера у тебя получилось ${cnt(yd.length,'дело','дела','дел')}. Я это запомнила.`]));
@@ -1373,10 +1378,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(tl.length===1)return buttons([['Да',()=>{tl[0].planned=planDay();next()}],['Не сегодня',next]]);
     pickList(tl.map(x=>({key:x.id,title:x.title})),{multi:true,doneLabel:'Взять',extra:['Не сегодня',next]},ch=>{ch.forEach(applyChoice);next()})
   }
-  function U5(){say(`Вчера вечером ты уже выбрала на сегодня: ${todayTasks().filter(x=>!x.repeat).map(x=>'«'+x.title+'»').join(', ')}. Оставляем так?`);buttons([['Да',U7],['Поменять',U6]])}
+  function U5(){say(`Вчера вечером ты уже выбрала на сегодня: ${todayTasks().filter(x=>!x.repeat).map(x=>'«'+x.title+'»').join(', ')}. Оставляем так?`);buttons([['Да',U7],['Поменять',U6],['Сегодня без дел',R1]])}
   function U6(){const c=candidates(),lim=dayLimit()===2?'двух':'трёх';
     say(!c.length?'Что хочешь сделать сегодня? Напиши одно дело, можно совсем маленькое.':pick([`Что берём на сегодня? Отметь самое главное, лучше не больше ${lim}.`,`Что важного сегодня? Выбери до ${lim} дел.`]));
-    pickList(c,{multi:true,custom:true,doneLabel:'Готово'},ch=>{ch.forEach(applyChoice);todayTasks().filter(x=>!x.repeat).length>dayLimit()?U6a():U7()})}
+    pickList(c,{multi:true,custom:true,doneLabel:'Готово',extra:['Сегодня без дел',R1]},ch=>{ch.forEach(applyChoice);todayTasks().filter(x=>!x.repeat).length>dayLimit()?U6a():U7()})}
   const light=()=>S.lightUntil&&now()<S.lightUntil;
   function dayLimit(){return S.today.energy==='low'?1:light()?2:3}
   function U6a(){const n=todayTasks().filter(x=>!x.repeat).length;say(S.today.energy==='low'?`Сил сегодня мало, а дел уже ${n}. Давай оставим одно, самое важное? Остальные подождут в списке.`:(dayLimit()===2?'Мы договорились на эту неделю брать по два дела. Какие два самые важные?':'Многовато для одного дня. Какие три самые важные? Остальные останутся в списке.'));
@@ -1395,6 +1400,17 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     say(`Росток «${short(g.title,24)}» ${wiltOf(g)===2?'чахнет':'подвял'}. Возьмём для него «${x.title}»?`);
     buttons([['Да',()=>{x.planned=pd;say('Ух-ху! Росток ждёт.');later(U9,600)}],['Не сегодня',U9]])
   }
+  // a day off: one gentle reminder about overdue tasks, then the owl lets her rest (Ilya, 18.11)
+  function R1(){const pd=planDay(),t=now();
+    const x=S.tasks.filter(y=>!y.done&&!y.repeat&&y.list!=='inbox'&&y.planned!==pd&&y.due&&dayDiff(y.due,t)<=0).sort((a,b)=>a.due.localeCompare(b.due))[0];
+    if(!x)return R2();
+    const dd=dayDiff(x.due,t),when=dd===0?'сегодня':'прошёл '+new Date(keyToTime(x.due)).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    say(`У «${short(x.title,28)}» срок ${when}. Может, только его?`);
+    buttons([['Возьму его',()=>{x.planned=pd;S.today.minimal=true;U9()}],['Сегодня отдыхаю',R2]])}
+  function R2(){S.rest=S.rest||{};S.rest[today()]=true;
+    S.tasks.forEach(x=>{if(!x.repeat&&!x.done&&x.planned===today()){x.planned=null;unseeToday(x)}}); // chosen yesterday evening: back to their lists, quietly
+    say(pick(['Хорошо, отдыхай. Отдых — тоже забота о себе.','Договорились: сегодня выходной. Отдыхай!']));
+    later(()=>{say('Я буду ждать завтра. Одно маленькое дело — и мне будет чем перекусить.');finishBtn('Завершить · +3 листа')},800)}
   function U9(){say(S.today.minimal?'Одно дело — тоже полноценный день. Я рядом.':pick(['План готов. Я в тебя верю!','Отлично, я рядом весь день. Ух-ху!','Договорились. Удачного дня!']));finishBtn('Завершить · +3 листа')}
 
   // Вечер. Что спрашивать, зависит от того, как прошёл день:
@@ -1412,6 +1428,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const d=eveData(),n=d.items.length,k=d.done.length;
     T.ev={day:today(),total:n,done:k,mood:null,sat:null,why:null,note:null};T.adj=0;
     const hi=pick(['Добрый вечер!','Привет! Вот и вечер.']);
+    if(!k&&restDay(today())){T.ev.rest=true;say(`${hi} Сегодня у нас был выходной. Надеюсь, ты отдохнула.`);return later(V6,700)}
     if(!n){say(`${hi} Сегодня мы не выбирали дел. Так тоже бывает.`);return later(()=>Vmood('Как ты?',V6))}
     if(k===n){say(`${hi} Сегодня сделано всё: ${k} из ${n}. ${pick(['Я тобой горжусь.','Это было здорово.'])}`);return later(()=>Vmood('Как ты сейчас?',V6),700)}
     if(k>0){say(`${hi} Сегодня сделано ${k} из ${n}: ${names(d.done)}.`);return later(Vsat,700)}
