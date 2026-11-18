@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сова</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Сова">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EFE6D8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1E1814" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="install" id="install" hidden>
+  <div class="install-card">
+    <img src="icon-512.png" alt="">
+    <h1>Поселим сову на экране «Домой»</h1>
+    <ol>
+      <li>Нажми «Поделиться» в Safari — квадрат со стрелкой. Если его не видно, он в меню «⋯».</li>
+      <li>Выбери «На экран „Домой“» и нажми «Добавить».</li>
+      <li>Открывай сову с новой иконки.</li>
+    </ol>
+    <p>Так она работает без интернета, и дела не потеряются. То, что записано здесь, в Safari, на экран «Домой» не переедет.</p>
+    <button class="ghost" type="button" data-skip>Посмотреть в Safari</button>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z M10 20.5a2.2 2.2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 11V9a3 3 0 0 1 3-3h12m-3-3 3 3-3 3M20 13v2a3 3 0 0 1-3 3H5m3 3-3-3 3-3" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 24 24"><path d="M4 6.5l1.6 1.6L8.5 5M4 13.5l1.6 1.6 2.9-3.1M11 7h9M11 14h9M5 20h.01M11 20h9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-starf" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" fill="currentColor" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><g transform="rotate(40 12 12)"><path fill="currentColor" d="M12 1.5C18 5.5 19.5 11.500 17 16 15.700 18.300 13.700 19.500 12 20 10.300 19.500 8.300 18.300 7 16 4.500 11.500 6 5.500 12 1.500Z"/><path d="M12 19.500V23.500" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/><path d="M12 6.500V18.500M12 11.500l3.200-2.800M12 15l-3.200-2.800" stroke="#fff" stroke-opacity=".55" stroke-width="1.100" stroke-linecap="round" fill="none"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9Z"/></symbol>
+  <symbol id="i-owl" viewBox="34 14 152 122"><path d="M64 70 C58 52 58 36 64 22 C70 34 80 44 94 50 C84 56 72 62 64 70 Z" fill="var(--owl-dark)"/><path d="M156 70 C162 52 162 36 156 22 C150 34 140 44 126 50 C136 56 148 62 156 70 Z" fill="var(--owl-dark)"/><path d="M110 34 C150 34 170 62 171 96 C174 126 175 150 166 170 C155 191 134 197 110 197 C86 197 65 191 54 170 C45 150 46 126 49 96 C50 62 70 34 110 34 Z" fill="var(--owl)"/><path d="M110 62 C96 52 68 54 60 78 C52 102 64 124 88 125 C99 125 106 121 110 116 C114 121 121 125 132 125 C156 124 168 102 160 78 C152 54 124 52 110 62 Z" fill="var(--face)" stroke="var(--owl-dark)" stroke-opacity=".35" stroke-width="2"/><circle cx="88" cy="96" r="19" fill="var(--eye)"/><circle cx="132" cy="96" r="19" fill="var(--eye)"/><circle cx="89" cy="97" r="14" fill="var(--pupil)"/><circle cx="131" cy="97" r="14" fill="var(--pupil)"/><circle cx="94" cy="91.5" r="4.2" fill="#fff"/><circle cx="136" cy="91.5" r="4.2" fill="#fff"/><path d="M110 106 L101 114 L110 128 L119 114 Z" fill="var(--beak)"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.7-9.6-9.4C.9 8.100 2.900 4.500 6.400 4.500c2.100 0 3.800 1.100 5.600 3.200 1.800-2.100 3.500-3.200 5.600-3.200 3.500 0 5.500 3.600 4 7.100C19.500 16.300 12 21 12 21Z"/></symbol>
+  <symbol id="f-bug" viewBox="0 0 40 40"><g stroke="#3D3129" stroke-width="2" stroke-linecap="round"><path d="M12 17 l-6 -3 M12 23 l-7 1 M13 29 l-5 4 M28 17 l6 -3 M28 23 l7 1 M27 29 l5 4 M17 8 l-4 -5 M23 8 l4 -5"/></g><circle cx="20" cy="10" r="5" fill="#3D3129"/><ellipse cx="20" cy="23" rx="10" ry="12" fill="#5E7F4B"/><path d="M20 12 V35" stroke="#2F4426" stroke-width="1.6"/><ellipse cx="16" cy="19" rx="2.5" ry="4" fill="#fff" opacity=".35"/></symbol>
+  <symbol id="f-fish" viewBox="0 0 40 40"><path d="M29 20 L38 12 L37 20 L38 28 Z" fill="#4E7487"/><ellipse cx="18" cy="20" rx="14" ry="9" fill="#6E8E9D"/><path d="M14 12 q4 -5 9 -1" fill="#4E7487"/><path d="M20 15 q3 5 0 10" stroke="#4E7487" stroke-width="1.6" fill="none"/><circle cx="10" cy="18" r="2.2" fill="#22303A"/><circle cx="10.6" cy="17.4" r=".7" fill="#fff"/><path d="M5 22 q2 1 4 0" stroke="#22303A" stroke-width="1.2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="f-mouse" viewBox="0 0 40 40"><path d="M30 27 q8 -1 7 -8 q-1 -5 3 -6" stroke="#B88A86" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M5 26 Q8 12 22 13 Q33 15 32 27 Z" fill="#A9A19C"/><circle cx="13" cy="13" r="5" fill="#A9A19C"/><circle cx="13" cy="13" r="3" fill="#E7B3AA"/><circle cx="9" cy="21" r="1.6" fill="#2A211B"/><circle cx="4.6" cy="24.6" r="1.6" fill="#E7A39A"/><path d="M5 26 H32" stroke="#8C847F" stroke-width="1.5"/></symbol>
+  <symbol id="f-scarf" viewBox="0 0 40 40"><path d="M7 12 q13 8 26 0 v7 q-13 8 -26 0Z" fill="#C0654A"/><path d="M23 21 l3 13 h7 l-4 -15Z" fill="#B0553C"/><path d="M8 15.5 q12 7.5 24 0" stroke="#FFFBF2" stroke-width="2" fill="none"/><path d="M24.5 27 h6" stroke="#FFFBF2" stroke-width="2"/><path d="M27 34 v3 M30 34 v3 M33 34 v3" stroke="#B0553C" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="f-pill" viewBox="0 0 40 40"><rect x="9" y="5" width="22" height="8" rx="2.5" fill="#FFFFFF" stroke="#8FA7B2" stroke-width="1.5"/><rect x="10" y="12" width="20" height="24" rx="5" fill="#D9E8EE" stroke="#8FA7B2" stroke-width="1.5"/><rect x="12.5" y="18" width="15" height="12" rx="2" fill="#FFFBF2"/><path d="M20 20.5 V27.5 M16.5 24 H23.5" stroke="#C0392B" stroke-width="2.4"/><ellipse cx="15" cy="33" rx="2.6" ry="1.6" fill="#F5D46B"/><ellipse cx="24" cy="33.5" rx="2.6" ry="1.6" fill="#FFFFFF"/></symbol>
+  <symbol id="f-seed" viewBox="0 0 40 40"><path d="M9 8 h22 l2 26 a2 2 0 0 1 -2 2 h-22 a2 2 0 0 1 -2 -2Z" fill="#F3E2C2" stroke="#C9A877" stroke-width="1.5"/><path d="M9 8 h22 l.5 6 h-23Z" fill="#A7B89A"/><path d="M20 30 V21" stroke="#5E8A45" stroke-width="2" stroke-linecap="round"/><path d="M20 23 C20 18 16 17 13 18 c0 4 3 6 7 5Z" fill="#6FA35A"/><path d="M20 21 c0 -4 3 -6 7 -5 c0 4 -3 6 -7 5Z" fill="#6FA35A"/></symbol>
+  <symbol id="f-yarn" viewBox="0 0 40 40"><circle cx="20" cy="22" r="12" fill="#D9A79A"/><path d="M10 16 q10 6 20 0 M9 23 q11 7 22 0 M13 31 q8 -12 3 -20 M24 33 q4 -13 -4 -22" stroke="#BE8577" stroke-width="1.6" fill="none"/><path d="M30 28 q6 2 6 8" stroke="#D9A79A" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="f-bed" viewBox="0 0 40 40"><ellipse cx="20" cy="26" rx="17" ry="9" fill="#A7B89A"/><ellipse cx="20" cy="23" rx="12" ry="5.5" fill="#E8D9C3"/><path d="M5 26 q15 6 30 0" stroke="#7F927A" stroke-width="1.6" fill="none" stroke-dasharray="2 2"/></symbol>
+  <symbol id="f-shelf" viewBox="0 0 40 40"><rect x="4" y="26" width="32" height="4" rx="1.5" fill="#C49A6C"/><path d="M9 30 v4 q0 2 2 2 M31 30 v4 q0 2 -2 2" stroke="#8F6743" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="8" y="10" width="5" height="16" rx="1" fill="#6E8E9D"/><rect x="14" y="7" width="5" height="19" rx="1" fill="#BE8577"/><rect x="20" y="12" width="5" height="14" rx="1" fill="#A7B89A"/></symbol>
+  <symbol id="f-book" viewBox="0 0 40 40"><path d="M8 9 q0 -3 3 -3 h19 v25 h-19 q-3 0 -3 3Z" fill="#8C6A8E"/><path d="M8 34 q0 -3 3 -3 h19 v4 h-19 q-3 0 -3 -1Z" fill="#FFFBF2" stroke="#8C6A8E" stroke-width="1.4"/><rect x="14" y="12" width="12" height="3" rx="1.5" fill="#FFFBF2" opacity=".8"/><rect x="14" y="18" width="8" height="2.4" rx="1.2" fill="#FFFBF2" opacity=".55"/></symbol>
+  <symbol id="i-fishpip" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12c2.500-4.200 6-6 10-6 3.300 0 5.800 1.700 7.400 4L23 7v10l-3.600-3c-1.600 2.300-4.100 4-7.400 4-4 0-7.500-1.800-10-6Z"/><circle cx="7.600" cy="11" r="1.300" fill="var(--paper)"/></symbol>
+  <symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 0 1-18 0Z" fill="currentColor"/><path d="M7 9c1-2 3-3 5-3s4 1 5 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21V11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 12C12 7 8 5 4 6c0 4 3 6 8 6Z" fill="currentColor"/><path d="M12 10c0-4 3-6 8-5 0 4-3 6-8 5Z" fill="currentColor"/></symbol>
+  <symbol id="i-env" viewBox="0 0 58 44"><rect x="1" y="1" width="56" height="42" rx="5" fill="#F3E2C2" stroke="#C9A877" stroke-width="2"/><path d="M2 3 L29 25 L56 3" fill="none" stroke="#C9A877" stroke-width="2"/><circle cx="29" cy="25" r="6" fill="#C9553F"/><path d="M26 25h6" stroke="#fff" stroke-width="1.6"/></symbol>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- HOME -->
+  <div id="v-home" class="page">
+    <div class="top"><div class="date" id="date"></div></div>
+
+    <section class="scene" id="scene" data-mood="ok" aria-label="Комната совы: лавка, сова и окно">
+      <div class="room-wrap">
+      <div class="pager" id="pager">
+<div class="pane" id="paneShop">
+<svg class="room shop" viewBox="0 0 360 290" role="img" aria-label="Лавка: за прилавком кот Марс">
+  <defs>
+    <radialGradient id="catG" cx="38%" cy="26%" r="85%"><stop offset="0" style="stop-color:var(--cat-hi)"/><stop offset=".5" style="stop-color:var(--cat)"/><stop offset="1" style="stop-color:var(--cat-dark)"/></radialGradient>
+  </defs>
+  <rect width="360" height="290" fill="url(#wallG)"/>
+  <ellipse class="lamp-glow" cx="180" cy="140" rx="160" ry="130" fill="url(#lampR)"/>
+  <ellipse class="eve eve-glow" cx="180" cy="150" rx="170" ry="140" fill="url(#eveR)"/>
+  <path d="M0 10 Q90 44 180 30 T360 26" stroke="var(--wood-dark)" stroke-width="1.2" fill="none" opacity=".8"/>
+<g><circle cx="30.0" cy="25.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="30.0" cy="25.0" r="3.2" fill="#FFD27A"/><circle cx="60.0" cy="32.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="60.0" cy="32.3" r="3.2" fill="#FFB98A"/><circle cx="90.0" cy="37.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="90.0" cy="37.0" r="3.2" fill="#FFE3A3"/><circle cx="120.0" cy="39.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="120.0" cy="39.0" r="3.2" fill="#FFD27A"/><circle cx="150.0" cy="38.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="150.0" cy="38.3" r="3.2" fill="#FFB98A"/><circle cx="180.0" cy="35.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="180.0" cy="35.0" r="3.2" fill="#FFE3A3"/><circle cx="210.0" cy="31.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="210.0" cy="31.0" r="3.2" fill="#FFD27A"/><circle cx="240.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="240.0" cy="28.3" r="3.2" fill="#FFB98A"/><circle cx="270.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="270.0" cy="27.0" r="3.2" fill="#FFE3A3"/><circle cx="300.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="300.0" cy="27.0" r="3.2" fill="#FFD27A"/><circle cx="330.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="330.0" cy="28.3" r="3.2" fill="#FFB98A"/></g>
+<path class="lights-hit" data-act="lights" role="button" aria-label="Гирлянда: погасить или зажечь" d="M0 10 Q90 44 180 30 T360 26" stroke="transparent" stroke-width="26" fill="none" pointer-events="stroke"/>
+  <!-- shelves with goods -->
+  <g class="shop-shelves">
+    <g fill="var(--wood)"><rect x="8" y="106" width="108" height="6" rx="2"/><rect x="8" y="160" width="108" height="6" rx="2"/><rect x="244" y="106" width="108" height="6" rx="2"/><rect x="244" y="160" width="108" height="6" rx="2"/></g>
+    <g fill="var(--wood-dark)" opacity=".5"><rect x="12" y="112" width="100" height="2.5"/><rect x="12" y="166" width="100" height="2.5"/><rect x="248" y="112" width="100" height="2.5"/><rect x="248" y="166" width="100" height="2.5"/></g>
+    <use href="#f-bug" x="14" y="78" width="28" height="28"/><use href="#f-mouse" x="47" y="78" width="28" height="28"/><use href="#f-fish" x="81" y="78" width="28" height="28"/>
+    <use href="#f-pill" x="14" y="132" width="28" height="28"/><use href="#f-scarf" x="47" y="132" width="28" height="28"/><use href="#f-yarn" x="81" y="132" width="28" height="28"/>
+    <use href="#f-seed" x="250" y="78" width="28" height="28"/><use href="#f-seed" x="279" y="78" width="28" height="28"/>
+    <g transform="translate(314 106)"><path d="M0 0 h26 l-3 -15 h-20Z" fill="var(--red)"/><rect x="-1.5" y="-18" width="29" height="5" rx="2" fill="var(--red)"/><path d="M13 -18 q-7 -10 -3 -19 M13 -18 q5 -9 10 -11" stroke="var(--ok)" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="10" cy="-38" r="3.4" fill="var(--rose)"/></g>
+    <g transform="translate(250 160)"><rect x="0" y="-25" width="8" height="25" rx="1.5" fill="var(--calm)"/><rect x="9" y="-29" width="7" height="29" rx="1.5" fill="var(--rose-dark)"/><rect x="17" y="-22" width="8" height="22" rx="1.5" fill="var(--sage)"/><rect x="27" y="-26" width="7" height="26" rx="1.5" fill="var(--accent)" transform="rotate(12 27 0)"/><g fill="#FFFBF2" opacity=".75"><rect x="2" y="-20" width="4" height="1.8" rx=".9"/><rect x="10.500" y="-24" width="4" height="1.8" rx=".9"/><rect x="19" y="-17" width="4" height="1.8" rx=".9"/></g></g>
+    <use href="#f-bed" x="314" y="132" width="32" height="32"/>
+  </g>
+  <!-- Mars, the gentleman cat -->
+  <g class="mars" id="mars" data-act="mars" role="button" aria-label="Кот Марс">
+    <path class="m-tail" d="M230 204 C262 202 270 172 254 156" stroke="var(--cat)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <g class="m-bob">
+      <path d="M126 214 C126 184 150 166 180 166 C210 166 234 184 234 214 Z" fill="url(#catG)"/>
+      <path d="M163 170 Q180 180 197 170 L180 208 Z" fill="#FFFBF2"/>
+      <path d="M163 170 L172 186 L180 176 Z M197 170 L188 186 L180 176 Z" fill="#F0E6D4"/>
+      <g class="m-head">
+        <path d="M142 114 L134 72 L170 96 Z" fill="var(--cat)"/><path d="M218 114 L226 72 L190 96 Z" fill="var(--cat)"/>
+        <path d="M145 104 L141 83 L160 96 Z" fill="#C98C8C"/><path d="M215 104 L219 83 L200 96 Z" fill="#C98C8C"/>
+        <path d="M137 138 l-11 7 l13 5 Z M223 138 l11 7 l-13 5 Z" fill="var(--cat)"/>
+        <ellipse cx="180" cy="132" rx="46" ry="40" fill="url(#catG)"/>
+        <ellipse cx="163" cy="108" rx="17" ry="7" fill="#fff" opacity=".1" transform="rotate(-18 163 108)"/>
+        <g class="m-hat" transform="rotate(-8 180 98)"><ellipse cx="180" cy="98" rx="28" ry="6.500" fill="var(--hat)"/><path d="M161 98 L163 64 Q180 58 197 64 L199 98 Q180 103 161 98Z" fill="var(--hat)"/><path d="M161.500 88 Q180 93 198.500 88 L199 97 Q180 102 161 97Z" fill="#A8443A"/><path d="M168 68 L167 84" stroke="#fff" stroke-opacity=".22" stroke-width="2.4" stroke-linecap="round"/></g>
+        <g class="m-eyes"><g class="m-eye"><ellipse cx="163" cy="134" rx="10" ry="11" fill="#F2C94C"/><ellipse cx="163" cy="134.500" rx="4.4" ry="8" fill="#1B1820"/><circle cx="166" cy="130" r="2.6" fill="#fff"/></g>
+          <g class="m-eye"><ellipse cx="197" cy="134" rx="10" ry="11" fill="#F2C94C"/><ellipse cx="197" cy="134.500" rx="4.4" ry="8" fill="#1B1820"/><circle cx="200" cy="130" r="2.6" fill="#fff"/></g></g>
+        <g class="m-happy" stroke="#F2C94C" stroke-width="3.6" fill="none" stroke-linecap="round"><path d="M153 137 Q163 126 173 137"/><path d="M187 137 Q197 126 207 137"/></g>
+        <circle cx="197" cy="134" r="14.500" fill="#fff" fill-opacity=".1" stroke="#D9B45A" stroke-width="2.4"/>
+        <path d="M209 142 Q224 160 198 177" stroke="#D9B45A" stroke-width="1.3" fill="none" stroke-dasharray="1.6 2.2" stroke-linecap="round"/>
+        <path d="M175.500 147 h9 l-4.500 5.500 Z" fill="#D98C8C"/>
+        <path d="M180 152.500 q-5 6.500 -11 2 M180 152.500 q5 6.500 11 2" stroke="#D8D0E0" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <g stroke="#EFE9F5" stroke-width="1.1" opacity=".85" stroke-linecap="round"><path d="M158 151 L129 146 M158 154 L128 156 M159 157 L132 166 M202 151 L231 146 M202 154 L232 156 M201 157 L228 166"/></g>
+      </g>
+      <g class="m-bow"><path d="M180 177 L163 167 Q160 177 163 187 Z M180 177 L197 167 Q200 177 197 187 Z" fill="#A8443A"/><circle cx="180" cy="177" r="4.4" fill="#8A332B"/></g>
+    </g>
+    <g class="m-heart" style="color:#D9705F"><use href="#i-heart" x="224" y="84" width="16" height="16"/></g>
+  </g>
+  <!-- counter -->
+  <rect x="0" y="210" width="360" height="80" fill="var(--wood)"/>
+  <g stroke="var(--wood-dark)" stroke-width="1" opacity=".35"><line x1="60" y1="214" x2="60" y2="290"/><line x1="120" y1="214" x2="120" y2="290"/><line x1="240" y1="214" x2="240" y2="290"/><line x1="300" y1="214" x2="300" y2="290"/></g>
+  <rect x="-4" y="203" width="368" height="11" rx="3" fill="var(--wood-dark)"/>
+  <rect x="0" y="204.500" width="360" height="2" fill="#fff" opacity=".14"/>
+  <rect x="110" y="231" width="140" height="36" rx="9" fill="var(--paper)" stroke="var(--wood-dark)" stroke-width="1.6"/>
+  <text x="180" y="256.500" text-anchor="middle" font-family="Caveat,cursive" font-weight="700" font-size="25" textLength="112" lengthAdjust="spacingAndGlyphs" fill="#5A4130">Лавка Марса</text>
+  <!-- Mars's paws in white gloves rest on the counter -->
+  <g class="m-paws" data-act="mars"><ellipse cx="153" cy="205" rx="13" ry="8" fill="#FFFBF2"/><ellipse cx="207" cy="205" rx="13" ry="8" fill="#FFFBF2"/><path d="M149 202 v6 M157 202 v6 M203 202 v6 M211 202 v6" stroke="#D9CDB8" stroke-width="1.3" stroke-linecap="round"/></g>
+  <!-- a tray of leaves and a bell -->
+  <g transform="translate(34 190)"><path d="M0 6 h46 q-3 9 -23 9 q-20 0 -23 -9Z" fill="var(--wood-dark)"/><ellipse cx="23" cy="6" rx="23" ry="4" fill="var(--plank)"/>
+    <use href="#i-leaf" x="2" y="-9" width="17" height="17" style="color:#D98B3A"/><use href="#i-leaf" x="15" y="-12" width="18" height="18" style="color:#C0654A"/><use href="#i-leaf" x="27" y="-8" width="16" height="16" style="color:#E0B04A"/></g>
+  <g class="bell" data-act="bell" role="button" aria-label="Звонок на прилавке" transform="translate(300 203)"><rect x="-30" y="-44" width="60" height="52" fill="transparent"/><g class="bell-b"><rect x="-16" y="-4" width="32" height="5" rx="2" fill="#8A6A2E"/><path d="M-13 -4 a13 12 0 0 1 26 0Z" fill="#D9B45A"/><path d="M-8 -8 a9 8 0 0 1 6 -6" stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none" stroke-linecap="round"/><circle cy="-17.500" r="3" fill="#8A6A2E"/></g>
+    <text class="ding" aria-hidden="true" x="-6" y="-26" text-anchor="middle" font-family="Caveat,cursive" font-weight="700" font-size="20" fill="#C9A24A">динь!</text></g>
+</svg>
+</div>
+      <div class="pane" id="paneOwl">
+      <svg class="room" viewBox="0 0 360 290" role="img" aria-label="Уютная комната: гирлянда, коврик и сова">
+        <defs>
+          <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--wall)"/><stop offset="1" stop-color="var(--wall2)"/></linearGradient>
+          <linearGradient id="skyD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFD7E1"/><stop offset=".7" stop-color="#F3DCC2"/><stop offset="1" stop-color="#F7CFA4"/></linearGradient>
+          <linearGradient id="skyN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111827"/><stop offset="1" stop-color="#2F2A46"/></linearGradient>
+          <filter id="wilt1" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values=".5"/><feColorMatrix type="matrix" values="1 0 0 0 .06  0 .96 0 0 .03  0 0 .82 0 0  0 0 0 1 0"/></filter>
+          <filter id="wilt2" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values=".2"/><feColorMatrix type="matrix" values=".95 0 0 0 .12  0 .85 0 0 .07  0 0 .62 0 0  0 0 0 1 0"/></filter>
+          <radialGradient id="glowR"><stop offset="0" stop-color="var(--glow)" stop-opacity=".9"/><stop offset="1" stop-color="var(--glow)" stop-opacity="0"/></radialGradient>
+          <radialGradient id="lampR" cx=".5" cy=".44" r=".5"><stop offset="0" stop-color="var(--glow)" stop-opacity=".45"/><stop offset="1" stop-color="var(--glow)" stop-opacity="0"/></radialGradient>
+          <radialGradient id="eveR" cx=".5" cy=".45" r=".5"><stop offset="0" stop-color="#FFB85C" stop-opacity=".5"/><stop offset=".6" stop-color="#F09A4A" stop-opacity=".16"/><stop offset="1" stop-color="#F09A4A" stop-opacity="0"/></radialGradient>
+          <radialGradient id="starR"><stop offset="0" stop-color="#FFD58A" stop-opacity=".95"/><stop offset="1" stop-color="#FFD58A" stop-opacity="0"/></radialGradient>
+          <clipPath id="winPane"><circle cx="180" cy="116" r="92"/></clipPath>
+          <clipPath id="clipL"><circle cx="88" cy="96" r="19"/></clipPath><clipPath id="clipR"><circle cx="132" cy="96" r="19"/></clipPath>
+        </defs>
+        <rect width="360" height="290" fill="url(#wallG)"/>
+        <ellipse class="lamp-glow" cx="180" cy="140" rx="160" ry="130" fill="url(#lampR)"/>
+        <ellipse class="eve eve-glow" cx="180" cy="150" rx="170" ry="140" fill="url(#eveR)"/>
+        <!-- string lights -->
+        <path d="M0 10 Q90 44 180 30 T360 26" stroke="var(--wood-dark)" stroke-width="1.2" fill="none" opacity=".8"/>
+        <g><circle cx="30.0" cy="25.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="30.0" cy="25.0" r="3.2" fill="#FFD27A"/><circle cx="60.0" cy="32.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="60.0" cy="32.3" r="3.2" fill="#FFB98A"/><circle cx="90.0" cy="37.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="90.0" cy="37.0" r="3.2" fill="#FFE3A3"/><circle cx="120.0" cy="39.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="120.0" cy="39.0" r="3.2" fill="#FFD27A"/><circle cx="150.0" cy="38.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="150.0" cy="38.3" r="3.2" fill="#FFB98A"/><circle cx="180.0" cy="35.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="180.0" cy="35.0" r="3.2" fill="#FFE3A3"/><circle cx="210.0" cy="31.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="210.0" cy="31.0" r="3.2" fill="#FFD27A"/><circle cx="240.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="240.0" cy="28.3" r="3.2" fill="#FFB98A"/><circle cx="270.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="270.0" cy="27.0" r="3.2" fill="#FFE3A3"/><circle cx="300.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="300.0" cy="27.0" r="3.2" fill="#FFD27A"/><circle cx="330.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="330.0" cy="28.3" r="3.2" fill="#FFB98A"/></g>
+        <path class="lights-hit" data-act="lights" role="button" aria-label="Гирлянда: погасить или зажечь" d="M0 10 Q90 44 180 30 T360 26" stroke="transparent" stroke-width="26" fill="none" pointer-events="stroke"/>
+        <!-- floor and rug -->
+        <rect x="0" y="254" width="360" height="36" fill="var(--wood)"/>
+        <g stroke="var(--wood-dark)" stroke-width="1" opacity=".35"><line x1="0" y1="266" x2="360" y2="266"/><line x1="0" y1="278" x2="360" y2="278"/><line x1="70" y1="254" x2="70" y2="266"/><line x1="190" y1="266" x2="190" y2="278"/><line x1="290" y1="254" x2="290" y2="266"/></g>
+        <g transform="translate(14 40)">
+        <ellipse cx="166" cy="234" rx="124" ry="13" fill="var(--sage)" opacity=".85"/>
+        <g class="decor-bed"><ellipse cx="166" cy="226" rx="76" ry="15" fill="#C0654A"/><ellipse cx="166" cy="222" rx="66" ry="10" fill="#E8D9C3"/><path d="M92 226 q74 20 148 0" stroke="#A9533B" stroke-width="2" fill="none" stroke-dasharray="3 4"/></g>
+        <g class="decor-yarn" transform="translate(262 216)"><circle r="11" fill="#D9A79A"/><path d="M-9 -4 q9 6 18 0 M-10 3 q10 6 20 0 M-4 -10 q6 10 2 20" stroke="#BE8577" stroke-width="1.4" fill="none"/><path d="M9 6 q10 4 14 12" stroke="#D9A79A" stroke-width="2" fill="none" stroke-linecap="round"/></g>
+        <ellipse cx="166" cy="234" rx="108" ry="9" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>
+        <ellipse cx="167" cy="231" rx="82" ry="8" fill="#000" opacity=".12"/>
+        </g>
+        <g class="decor-shelf2" data-act="shelf" role="button" aria-label="Вторая книжная полочка"><rect x="8" y="80" width="72" height="38" fill="transparent"/><rect x="10" y="110" width="68" height="6" rx="2" fill="var(--wood)"/><rect x="12" y="116" width="64" height="2.500" fill="var(--wood-dark)" opacity=".55"/><path d="M19 118 v6 q0 3 3 3 M69 118 v6 q0 3 -3 3" stroke="var(--wood-dark)" stroke-width="3" fill="none" stroke-linecap="round"/><g id="shelfBooks2"></g></g>
+        <g class="decor-shelf" data-act="shelf" role="button" aria-label="Книжная полочка"><rect x="8" y="118" width="72" height="42" fill="transparent"/><rect x="10" y="150" width="68" height="6" rx="2" fill="var(--wood)"/><rect x="12" y="156" width="64" height="2.500" fill="var(--wood-dark)" opacity=".55"/><path d="M19 158 v7 q0 3 3 3 M69 158 v7 q0 3 -3 3" stroke="var(--wood-dark)" stroke-width="3" fill="none" stroke-linecap="round"/><g id="shelfBooks"></g></g>
+        <g class="lantern" id="lantern" data-act="lantern" role="button"><g transform="translate(322 257) scale(1.28) translate(-322 -257)"><ellipse class="eve lit" cx="322" cy="262" rx="58" ry="11" fill="url(#glowR)"/><circle class="halo lit" cx="322" cy="238" r="46" fill="url(#glowR)"/><circle class="halo lit core" cx="322" cy="240" r="22" fill="url(#glowR)"/>
+          <path d="M315 222 q7 -10 14 0" stroke="var(--wood-dark)" stroke-width="2" fill="none"/><rect x="311" y="222" width="22" height="5" rx="2" fill="var(--wood-dark)"/>
+          <rect class="glass" x="312" y="227" width="20" height="26" rx="3" fill="#FFF3CF" fill-opacity=".38" stroke="var(--wood-dark)" stroke-width="2"/>
+          <rect x="319" y="242" width="6" height="10" rx="1.500" fill="var(--paper)"/><path d="M322 242 v-3" stroke="#5A4130" stroke-width="1" stroke-linecap="round"/><path class="flame lit" d="M322 232 C325 236 325 240 322 241 C319 240 319 236 322 232Z" fill="var(--flame)"/>
+          <rect x="309" y="252" width="26" height="5" rx="2" fill="var(--wood-dark)"/></g>
+          <g class="spark" fill="#FFE29A"><path d="M300 200 l1.600 4 4 1.600 -4 1.600 -1.600 4 -1.600 -4 -4 -1.600 4 -1.600Z"/><path d="M345 214 l1.300 3.200 3.200 1.300 -3.200 1.300 -1.300 3.200 -1.300 -3.200 -3.200 -1.300 3.200 -1.300Z"/><path d="M340 188 l1 2.500 2.500 1 -2.500 1 -1 2.500 -1 -2.500 -2.500 -1 2.500 -1Z"/></g>
+          <g class="streak-tag"><path d="M314 213 Q298 214 287 233" stroke="var(--wood-dark)" stroke-width="1.100" fill="none" opacity=".7"/><g transform="translate(-7 1) rotate(-8 288 246)"><path d="M276 236 h20 l6 10 -6 10 h-20 q-3 0 -3 -3 v-14 q0 -3 3 -3Z" fill="var(--paper)" stroke="var(--wood-dark)" stroke-width="1.300"/><circle cx="296.500" cy="246" r="1.600" fill="var(--wood-dark)"/><text id="streak" x="285" y="251.500" text-anchor="middle" font-family="Lora,Georgia,serif" font-weight="700" font-size="14" fill="#3A2E26"></text></g></g>
+          <rect x="270" y="196" width="86" height="72" fill="transparent"/></g>
+        <svg class="owl-svg" id="owlSvg" x="38" y="14" width="284" height="276" viewBox="0 0 220 214" overflow="visible">
+<defs>
+<radialGradient id="oA-body" cx="38%" cy="28%" r="80%"><stop offset="0" style="stop-color:color-mix(in srgb,var(--owl) 78%,#fff)"/><stop offset=".55" style="stop-color:var(--owl)"/><stop offset="1" style="stop-color:var(--owl-dark)"/></radialGradient>
+<radialGradient id="oA-belly" cx="50%" cy="35%" r="70%"><stop offset="0" style="stop-color:color-mix(in srgb,var(--belly) 70%,#fff)"/><stop offset="1" style="stop-color:var(--belly)"/></radialGradient>
+<radialGradient id="oA-disc" cx="50%" cy="40%" r="65%"><stop offset="0" style="stop-color:color-mix(in srgb,var(--face) 60%,#fff)"/><stop offset="1" style="stop-color:var(--face)"/></radialGradient>
+<linearGradient id="oA-wing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--owl)"/><stop offset="1" style="stop-color:var(--owl-dark)"/></linearGradient></defs>
+<g class="owl"><g class="react"><g class="bob">
+<!-- behind the body: ear tufts, thermometer, the fluffed-up coat -->
+<g class="head-b"><path class="tuft tuft-l" d="M64 70 C58 52 58 36 64 22 C70 34 80 44 94 50 C84 56 72 62 64 70 Z" fill="var(--owl-dark)"/><path class="tuft tuft-r" d="M156 70 C162 52 162 36 156 22 C150 34 140 44 126 50 C136 56 148 62 156 70 Z" fill="var(--owl-dark)"/></g>
+<g class="sick-gear thermo" transform="translate(52 150) rotate(-52)"><rect x="-3.5" y="-34" width="7" height="36" rx="3.5" fill="#FFFBF2" stroke="#8C847F" stroke-width="1.2"/><rect x="-1.3" y="-20" width="2.6" height="20" fill="#C0392B"/><circle cy="4" r="5.5" fill="#C0392B"/></g>
+<g class="puff"><path d="M110.0 34.0 A13.1 13.1 0 0 1 135.3 38.8 A13.3 13.3 0 0 1 157.6 52.5 A13.6 13.6 0 0 1 174.1 73.5 A13.9 13.9 0 0 1 182.9 99.3 A14.0 14.0 0 0 1 182.9 126.7 A13.9 13.9 0 0 1 174.1 152.5 A13.6 13.6 0 0 1 157.6 173.5 A13.3 13.3 0 0 1 135.3 187.2 A13.1 13.1 0 0 1 110.0 192.0 A13.1 13.1 0 0 1 84.7 187.2 A13.3 13.3 0 0 1 62.4 173.5 A13.6 13.6 0 0 1 45.9 152.5 A13.9 13.9 0 0 1 37.1 126.7 A14.0 14.0 0 0 1 37.1 99.3 A13.9 13.9 0 0 1 45.9 73.5 A13.6 13.6 0 0 1 62.4 52.5 A13.3 13.3 0 0 1 84.7 38.8 A13.1 13.1 0 0 1 110.0 34.0Z" fill="var(--owl-dark)"/><path d="M121.8 41.1 A12.2 12.2 0 0 1 144.0 49.8 A12.4 12.4 0 0 1 162.1 66.1 A12.7 12.7 0 0 1 173.9 88.0 A12.9 12.9 0 0 1 178.0 113.0 A12.9 12.9 0 0 1 173.9 138.0 A12.7 12.7 0 0 1 162.1 159.9 A12.4 12.4 0 0 1 144.0 176.2 A12.2 12.2 0 0 1 121.8 184.9 A12.0 12.0 0 0 1 98.2 184.9 A12.2 12.2 0 0 1 76.0 176.2 A12.4 12.4 0 0 1 57.9 159.9 A12.7 12.7 0 0 1 46.1 138.0 A12.9 12.9 0 0 1 42.0 113.0 A12.9 12.9 0 0 1 46.1 88.0 A12.7 12.7 0 0 1 57.9 66.1 A12.4 12.4 0 0 1 76.0 49.8 A12.2 12.2 0 0 1 98.2 41.1 A12.0 12.0 0 0 1 121.8 41.1Z" fill="var(--owl)"/></g>
+<path class="wing wing-l" d="M60 104 C44 116 38 142 44 166 C46 174 52 176 56 170 C58 177 64 178 67 171 C70 176 76 174 76 167 C80 146 78 124 70 106 Z" fill="url(#oA-wing)"/><path class="wing wing-r" d="M160 104 C176 116 182 142 176 166 C174 174 168 176 164 170 C162 177 156 178 153 171 C150 176 144 174 144 167 C140 146 142 124 150 106 Z" fill="url(#oA-wing)"/>
+<!-- body -->
+<path d="M110 34 C150 34 170 62 171 96 C174 126 175 150 166 170 C155 191 134 197 110 197 C86 197 65 191 54 170 C45 150 46 126 49 96 C50 62 70 34 110 34 Z" fill="url(#oA-body)"/>
+<ellipse cx="88" cy="52" rx="20" ry="9" fill="#fff" opacity=".14" transform="rotate(-20 88 52)"/>
+<g class="ruffle" fill="var(--owl-dark)"><path d="M101 43 Q91 35 93 25 Q103 29 107 40 Z"/><path d="M105 41 Q103 27 110 19 Q117 27 115 41 Z"/><path d="M113 40 Q117 29 127 25 Q129 35 119 43 Z"/></g>
+<g class="belly"><path d="M110 120 C140 120 154 140 152 162 C150 182 132 192 110 192 C88 192 70 182 68 162 C66 140 80 120 110 120 Z" fill="url(#oA-belly)"/>
+<g fill="none" stroke="var(--owl)" stroke-width="2.4" stroke-linecap="round" opacity=".55"><path d="M92 140 l5 5 l5 -5"/><path d="M118 140 l5 5 l5 -5"/><path d="M80 156 l5 5 l5 -5"/><path d="M105 156 l5 5 l5 -5"/><path d="M130 156 l5 5 l5 -5"/><path d="M92 172 l5 5 l5 -5"/><path d="M118 172 l5 5 l5 -5"/></g></g>
+<g fill="var(--beak)"><ellipse cx="90" cy="194" rx="5" ry="4"/><ellipse cx="97" cy="195" rx="5" ry="4"/><ellipse cx="123" cy="195" rx="5" ry="4"/><ellipse cx="130" cy="194" rx="5" ry="4"/></g>
+<g class="scarf"><path d="M54 124 Q110 142 166 124 L167 139 Q110 157 53 139 Z" fill="#C0654A"/><path d="M56 131 Q110 148 164 131" stroke="#FFFBF2" stroke-width="2.4" fill="none" stroke-dasharray="7 5"/><path d="M138 140 L146 176 L160 173 L154 136 Z" fill="#B0553C"/><path d="M141 156 L155 153" stroke="#FFFBF2" stroke-width="2.2"/><path d="M146 176 l-1 5 M151 175 l0 5 M156 174 l1 5" stroke="#B0553C" stroke-width="2" stroke-linecap="round"/></g>
+<!-- head: everything that tilts, nods and turns together -->
+<g class="head">
+<path d="M110 62 C96 52 68 54 60 78 C52 102 64 124 88 125 C99 125 106 121 110 116 C114 121 121 125 132 125 C156 124 168 102 160 78 C152 54 124 52 110 62 Z" fill="url(#oA-disc)" stroke="var(--owl-dark)" stroke-opacity=".35" stroke-width="2"/>
+<g class="eyes-open">
+<g class="eye eye-l"><circle cx="88" cy="96" r="19" fill="var(--eye)"/>
+<g class="pupil-g"><g class="pupil"><circle cx="89" cy="97" r="14" fill="var(--pupil)"/><circle cx="94" cy="91.5" r="4.2" fill="#fff"/><circle cx="84.5" cy="102" r="2" fill="#fff" opacity=".75"/></g></g>
+<g class="beg"><circle cx="88" cy="95" r="16.5" fill="var(--pupil)"/><circle cx="93" cy="89" r="6" fill="var(--eye)"/><circle cx="83.5" cy="100" r="3" fill="var(--eye)"/></g>
+<g clip-path="url(#clipL)"><g class="lid lid-l"><path d="M58 52 H118 V114 Q88 123 58 114 Z" fill="var(--owl)"/><path d="M58 114 Q88 123 118 114" fill="none" stroke="var(--owl-dark)" stroke-width="2.6" stroke-linecap="round"/></g></g></g>
+<g class="eye eye-r"><circle cx="132" cy="96" r="19" fill="var(--eye)"/>
+<g class="pupil-g"><g class="pupil"><circle cx="131" cy="97" r="14" fill="var(--pupil)"/><circle cx="136" cy="91.5" r="4.2" fill="#fff"/><circle cx="126.5" cy="102" r="2" fill="#fff" opacity=".75"/></g></g>
+<g class="beg"><circle cx="132" cy="95" r="16.5" fill="var(--pupil)"/><circle cx="137" cy="89" r="6" fill="var(--eye)"/><circle cx="127.5" cy="100" r="3" fill="var(--eye)"/></g>
+<g clip-path="url(#clipR)"><g class="lid lid-r"><path d="M102 52 H162 V114 Q132 123 102 114 Z" fill="var(--owl)"/><path d="M102 114 Q132 123 162 114" fill="none" stroke="var(--owl-dark)" stroke-width="2.6" stroke-linecap="round"/></g></g></g>
+</g>
+<g class="happy-eye" stroke="var(--pupil)" stroke-width="5" fill="none" stroke-linecap="round"><path d="M76 100 Q88 84 100 100"/><path d="M120 100 Q132 84 144 100"/></g>
+<g class="sleep-eye" stroke="var(--pupil)" stroke-width="4.5" fill="none" stroke-linecap="round"><path class="se-l" d="M76 96 Q88 106 100 96"/><path class="se-r" d="M120 96 Q132 106 144 96"/></g>
+<g class="brow" stroke="var(--owl-dark)" stroke-width="7" stroke-linecap="round" fill="none"><path d="M69 65 Q86 68 100 80"/><path d="M151 65 Q134 68 120 80"/></g>
+<g class="brow-sad" stroke="var(--owl-dark)" stroke-width="5.5" stroke-linecap="round" fill="none"><path d="M70 79 Q83 68 98 68"/><path d="M150 79 Q137 68 122 68"/></g>
+<ellipse class="blush" cx="69" cy="115" rx="8.5" ry="5.5" fill="var(--red)" fill-opacity=".42"/><ellipse class="blush" cx="151" cy="115" rx="8.5" ry="5.5" fill="var(--red)" fill-opacity=".42"/>
+<g class="fever"><ellipse cx="69" cy="115" rx="9.5" ry="6" fill="#E26A55" fill-opacity=".6"/><ellipse cx="151" cy="115" rx="9.5" ry="6" fill="#E26A55" fill-opacity=".6"/></g>
+<path class="beak" d="M110 106 L101 114 L110 128 L119 114 Z" fill="var(--beak)"/>
+<g class="beak-open"><path d="M101 112 L110 104 L119 112 L110 117 Z" fill="var(--beak)"/><ellipse cx="110" cy="120.5" rx="6.5" ry="4" fill="#6E3324"/><path d="M104 124 L110 131 L116 124 Z" fill="var(--beak)"/></g>
+<path class="tear" d="M76 116 q-5 8 0 11 q5 -3 0 -11 Z" fill="var(--tear)"/>
+<g class="sick-gear hat"><path d="M58 70 Q58 20 110 18 Q162 20 162 70 Z" fill="#6E8E9D"/><path d="M80 24 Q78 46 76 66 M110 18 V64 M140 24 Q142 46 144 66" stroke="#5A7684" stroke-width="2.4" fill="none"/>
+<path d="M54 60 Q110 46 166 60 L166 74 Q110 60 54 74 Z" fill="#E8D9C3"/><g stroke="#C9B79E" stroke-width="2"><line x1="64" y1="58" x2="64" y2="71"/><line x1="78" y1="55" x2="78" y2="68"/><line x1="92" y1="53" x2="92" y2="66"/><line x1="106" y1="52" x2="106" y2="65"/><line x1="120" y1="52" x2="120" y2="65"/><line x1="134" y1="53" x2="134" y2="66"/><line x1="148" y1="55" x2="148" y2="68"/><line x1="160" y1="58" x2="160" y2="71"/></g>
+<circle cx="110" cy="16" r="11" fill="#FFFBF2"/><circle cx="106" cy="13" r="3" fill="#fff" opacity=".8"/></g>
+</g>
+<!-- signs around the owl -->
+<g class="fume" fill="#B8B2AC"><circle cx="62" cy="34" r="6"/><circle cx="54" cy="24" r="4.5"/><circle cx="158" cy="34" r="6"/><circle cx="166" cy="24" r="4.5"/></g>
+<g class="anger" stroke="var(--danger)" stroke-width="4" stroke-linecap="round" fill="none"><path d="M157 37 Q163 37 163 31"/><path d="M169 31 Q169 37 175 37"/><path d="M175 43 Q169 43 169 49"/><path d="M163 49 Q163 43 157 43"/></g>
+<g class="zzz" font-family="Caveat,cursive" font-weight="700" fill="var(--calm)"><text x="150" y="46" font-size="20">z</text><text x="163" y="31" font-size="25">z</text><text x="178" y="14" font-size="30">Z</text></g>
+</g></g></g>
+</svg>
+        <g class="bowl" data-act="feed" transform="translate(8 250)"><ellipse cx="16" cy="15" rx="19" ry="4" fill="#000" opacity=".14"/><path d="M0 4 h32 q-2 11 -16 11 q-14 0 -16 -11Z" fill="var(--calm)"/><ellipse cx="16" cy="4.5" rx="16" ry="3.5" fill="var(--wood-dark)" opacity=".7"/></g>
+        <g class="think" transform="translate(56 22)"><circle cx="240" cy="84" r="3" fill="var(--paper)"/><circle cx="248" cy="72" r="5" fill="var(--paper)"/><ellipse cx="262" cy="50" rx="23" ry="17" fill="var(--paper)" stroke="var(--line)"/><use href="#f-mouse" x="248" y="36" width="28" height="28"/></g>
+        <g class="confetti"><circle cx="26" cy="130" r="4" fill="var(--accent)"/><rect x="318" y="150" width="7" height="7" rx="1.5" fill="var(--ok)" transform="rotate(20 321 153)"/><circle cx="336" cy="210" r="3.5" fill="var(--red)"/><rect x="22" y="170" width="6" height="6" rx="1.5" fill="var(--calm)" transform="rotate(-15 25 173)"/><circle cx="300" cy="62" r="3" fill="var(--calm)"/><circle cx="44" cy="70" r="3" fill="var(--ok)"/></g>
+      </svg>
+      </div>
+      <div class="pane" id="paneWin">
+      <svg class="room win" viewBox="0 0 360 290" role="img" aria-label="Окно и подоконник с горшком для цели">
+        <rect width="360" height="290" fill="url(#wallG)"/>
+        <ellipse class="lamp-glow" cx="180" cy="140" rx="160" ry="130" fill="url(#lampR)"/>
+        <ellipse class="eve eve-glow" cx="180" cy="150" rx="170" ry="140" fill="url(#eveR)"/>
+        <!-- big round window, like an owl's hollow -->
+        <g class="window-btn" data-act="sky" role="button" aria-label="Небо за окном">
+          <circle cx="180" cy="116" r="103" fill="var(--wood-dark)"/>
+          <circle cx="180" cy="116" r="97" fill="none" stroke="var(--wood)" stroke-width="4" opacity=".75"/>
+          <g clip-path="url(#winPane)">
+            <rect x="86" y="22" width="188" height="188" fill="url(#skyD)"/>
+            <circle class="sun" cx="226" cy="150" r="22" fill="#FBE0A6" opacity=".9"/>
+            <path d="M86 176 Q130 152 180 170 T274 162 V212 H86Z" fill="#9FB49A" opacity=".8"/>
+            <path d="M86 192 Q140 178 196 190 T274 184 V212 H86Z" fill="#8DAE6E" opacity=".75"/>
+            <rect class="sky-night" x="86" y="22" width="188" height="188" fill="url(#skyN)"/>
+            <g class="stars-g" fill="#FFF3CF"><circle cx="118" cy="140" r="1.4"/><circle cx="142" cy="44" r="1.2"/><circle cx="214" cy="38" r="1.3"/><circle cx="252" cy="84" r="1.1"/><circle cx="104" cy="92" r="1.1"/><circle cx="238" cy="132" r="1.2"/><circle cx="170" cy="60" r="1"/><circle cx="196" cy="118" r="1"/></g>
+            <path class="moon" d="M236 78 a15 15 0 1 0 7.5 -22.5 a11.5 11.5 0 1 1 -7.5 22.5Z" fill="#F5E9C8"/>
+            <g class="cloud" opacity="0"><g fill="var(--cloud)"><ellipse cx="180" cy="62" rx="52" ry="17"/><ellipse cx="146" cy="68" rx="28" ry="15"/><ellipse cx="214" cy="70" rx="27" ry="14"/></g>
+              <g class="rain" stroke="#9CC2DC" stroke-width="2.6" stroke-linecap="round"><line x1="150" y1="92" x2="144" y2="108"/><line x1="176" y1="94" x2="170" y2="110"/><line x1="202" y1="92" x2="196" y2="108"/></g></g>
+          </g>
+          <path d="M180 24 V208 M88 116 H272" stroke="var(--wood-dark)" stroke-width="5"/>
+        </g>
+        <g id="winStars"></g>
+        <!-- string lights -->
+        <path d="M0 10 Q90 44 180 30 T360 26" stroke="var(--wood-dark)" stroke-width="1.2" fill="none" opacity=".8"/>
+        <g><circle cx="30.0" cy="25.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="30.0" cy="25.0" r="3.2" fill="#FFD27A"/><circle cx="60.0" cy="32.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="60.0" cy="32.3" r="3.2" fill="#FFB98A"/><circle cx="90.0" cy="37.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="90.0" cy="37.0" r="3.2" fill="#FFE3A3"/><circle cx="120.0" cy="39.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="120.0" cy="39.0" r="3.2" fill="#FFD27A"/><circle cx="150.0" cy="38.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="150.0" cy="38.3" r="3.2" fill="#FFB98A"/><circle cx="180.0" cy="35.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="180.0" cy="35.0" r="3.2" fill="#FFE3A3"/><circle cx="210.0" cy="31.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="210.0" cy="31.0" r="3.2" fill="#FFD27A"/><circle cx="240.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="240.0" cy="28.3" r="3.2" fill="#FFB98A"/><circle cx="270.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="270.0" cy="27.0" r="3.2" fill="#FFE3A3"/><circle cx="300.0" cy="27.0" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="300.0" cy="27.0" r="3.2" fill="#FFD27A"/><circle cx="330.0" cy="28.3" r="9" fill="url(#glowR)" class="gh"/><circle class="bulb" cx="330.0" cy="28.3" r="3.2" fill="#FFB98A"/></g>
+        <path class="lights-hit" data-act="lights" role="button" aria-label="Гирлянда: погасить или зажечь" d="M0 10 Q90 44 180 30 T360 26" stroke="transparent" stroke-width="26" fill="none" pointer-events="stroke"/>
+        <!-- windowsill -->
+        <rect x="18" y="226" width="324" height="13" rx="5" fill="var(--wood)"/>
+        <rect x="26" y="239" width="308" height="4" fill="var(--wood-dark)" opacity=".5"/>
+        <path d="M52 243 v16 q0 6 6 6 M308 243 v16 q0 6 -6 6" stroke="var(--wood-dark)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+        <!-- a mug of tea standing on the sill: the bottom sits on the board, the rim and the handle have depth -->
+        <g class="mug" transform="translate(58 227) scale(1.15)">
+          <ellipse cx="2" cy="0" rx="17" ry="3" fill="#000" opacity=".18"/>
+          <path d="M9 -18 q11 -1.500 11 7.500 q0 8 -11 8" fill="none" stroke="var(--calm)" stroke-width="4.200" stroke-linecap="round"/>
+          <path d="M9 -18 q11 -1.500 11 7.500 q0 8 -11 8" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="1.400" stroke-linecap="round" transform="translate(.8 .8)"/>
+          <path d="M-11 -24 L-10 -3 Q-10 0 -7 0 L7 0 Q10 0 10 -3 L11 -24Z" fill="var(--calm)"/>
+          <path d="M-11 -24 L-10 -3 Q-10 0 -7 0 L-4 0 L-5 -24Z" fill="#fff" opacity=".2"/>
+          <path d="M5 -24 L4 0 L7 0 Q10 0 10 -3 L11 -24Z" fill="#000" opacity=".16"/>
+          <path d="M-10.600 -14 Q0 -11.500 10.600 -14 L10.500 -10.500 Q0 -8 -10.400 -10.500Z" fill="#FFFBF2" opacity=".85"/>
+          <path d="M-3 -12.300 l1.600 -1.700 1.400 1.300 1.400 -1.300 1.600 1.700 -3 2.800Z" fill="var(--rose)"/>
+          <ellipse cx="0" cy="-24" rx="11" ry="3.300" fill="var(--calm)"/>
+          <ellipse cx="0" cy="-24" rx="11" ry="3.300" fill="#fff" opacity=".22"/>
+          <ellipse cx="0" cy="-23.500" rx="9" ry="2.400" fill="#7A4A2C"/>
+          <ellipse cx="-2.500" cy="-24" rx="3.500" ry=".9" fill="#fff" opacity=".18"/>
+          <g class="steam" stroke="var(--paper-muted)" stroke-width="1.400" fill="none" stroke-linecap="round"><path d="M-3 -29 q3 -4 0 -8"/><path d="M3 -29 q3 -4 0 -8"/></g>
+        </g>
+        <g transform="translate(288 188) scale(1.25)"><circle cx="8" cy="10" r="16" fill="url(#glowR)" class="halo"/><rect x="2" y="16" width="12" height="14" rx="2" fill="var(--paper)"/><line x1="8" y1="16" x2="8" y2="12" stroke="var(--ink)" stroke-width="1"/><path class="flame" d="M8 4 C11 8 11 12 8 13 C5 12 5 8 8 4Z" fill="var(--flame)"/></g>
+        <g id="pots"></g>
+      </svg>
+      </div>
+      </div>
+      <div class="hud">
+        <button class="hud-chip hud-hunger" type="button" id="hudHunger" hidden><svg class="hi" aria-hidden="true"><use href="#i-bowl"/></svg><b id="hudHungerTxt"></b></button>
+        <button class="hud-chip" type="button" data-act="go" data-view="shop" id="walletChip" aria-label="Листья. Открыть лавку"><svg class="hi" style="color:var(--accent)" aria-hidden="true"><use href="#i-leaf"/></svg><b id="feathers"></b></button>
+      </div>
+      <div class="care" id="care" hidden>
+        <div class="care-tag care-l" id="moodTag"><span class="tag-ico" id="moodIco" aria-hidden="true"></span><small>Настроение</small><b id="moodName"></b><span class="pips" id="moodPips"></span></div>
+        <div class="care-tag care-r" id="hungerTag"><span class="tag-ico" aria-hidden="true"><svg><use href="#i-bowl"/></svg></span><small>Сытость</small><b id="hungerTxt"></b><span class="pips" id="hungerPips"></span></div>
+        <div class="care-feed" id="careFeed"></div>
+      </div>
+      </div>
+      <div class="room-dots" id="roomDots"><button class="rdot" type="button" data-pane="2" aria-label="Лавка Марса"></button><button class="rdot on" type="button" data-pane="0" aria-label="Сова" aria-current="true"></button><button class="rdot" type="button" data-pane="1" aria-label="Окно и горшок"></button></div>
+      <p class="bubble" id="bubble" role="button" tabindex="0" aria-live="polite"><span class="who" id="owlName">Сова</span><span id="say"></span><span id="marsSay" hidden></span></p>
+    </section>
+
+    <section class="shopsec" id="shopSec" aria-label="Товары лавки" hidden>
+      <div class="shop-hunger" id="shopHunger"></div>
+      <h3 class="shop-h">Еда</h3>
+      <ul class="lgroup" id="shopFood"></ul>
+      <h3 class="shop-h">Семена</h3>
+      <p class="note" id="seedNote"></p>
+      <ul class="lgroup" id="shopSeeds"></ul>
+      <h3 class="shop-h">Забота</h3>
+      <ul class="lgroup" id="shopCare"></ul>
+      <h3 class="shop-h">Для комнаты</h3>
+      <ul class="lgroup" id="shopSoon"></ul>
+      <h3 class="shop-h">Книги</h3>
+      <ul class="lgroup" id="shopBooks"></ul>
+      <p class="note">Листья приходят за сделанные дела и разговоры с совой.</p>
+    </section>
+
+    <section class="goalssec" id="goalsSec" aria-labelledby="goalsH" hidden>
+      <div class="sec-head"><h2 id="goalsH">Цели</h2><span class="count" id="goalsStars"></span></div>
+      <ul class="lgroup" id="goalsList"></ul>
+      <button class="secondary" type="button" data-act="newGoal">+ Новая цель</button>
+      <p class="note">На подоконнике растут до трёх целей. Остальные ждут, пока освободится место.</p>
+    </section>
+
+    <section class="today" id="todaySec" aria-labelledby="todayH">
+      <div class="sec-head"><h2 id="todayH">Сегодня</h2><span class="count" id="todayCount"></span></div>
+      <div id="todayBody"></div>
+    </section>
+
+
+
+  </div>
+
+  <!-- CALENDAR -->
+  <div id="v-calendar" class="page" hidden>
+    <div class="back"><button type="button" data-act="go" data-view="home"><svg><use href="#i-back"/></svg>К сове</button></div>
+    <h2>Календарь</h2>
+    <p class="note" id="calNote">Все дела по срокам. Плюсиком бери то, что хочешь сделать сегодня.</p>
+    <div id="calBody" class="page"></div>
+  </div>
+
+  <!-- MAIL -->
+  <div id="v-mail" class="page" hidden>
+    <div class="back"><button type="button" data-act="go" data-view="home"><svg><use href="#i-back"/></svg>К сове</button></div>
+    <h2>Почта</h2>
+    <div id="letterBox"></div>
+    <div class="sec-head"><h2 style="font-size:17px">Входящие</h2><span class="count" id="inboxCount"></span></div>
+    <p class="note">Всё, что пришло в голову. Нажми на запись, чтобы выбрать ей список и срок.</p>
+    <ul class="list" id="inboxList"></ul>
+  </div>
+
+  <!-- LISTS -->
+  <div id="v-lists" class="page" hidden>
+    <div class="back"><button type="button" data-act="go" data-view="home"><svg><use href="#i-back"/></svg>К сове</button></div>
+    <h2>Списки</h2>
+    <ul class="lgroup" id="listCards"></ul>
+    <form class="inline" id="newListForm" hidden><input id="newListInput" placeholder="Название списка" aria-label="Название нового списка" autocomplete="off"><button type="submit">Создать</button></form>
+        <section class="backup" aria-labelledby="backupH">
+      <h2 id="backupH" style="font-size:17px">Копия на всякий случай</h2>
+      <p class="note" id="backupNote"></p>
+      <p class="note">Все дела, цели и сова живут только в этом телефоне. Копию можно сохранить в «Файлы» и вернуть, если что-то случится.</p>
+      <div class="backup-row"><button class="secondary" type="button" data-act="backupSave">Сохранить копию</button><button class="ghost" type="button" data-act="backupLoad">Вернуть из копии</button></div>
+    </section>
+  </div>
+
+  <!-- ONE LIST -->
+  <div id="v-list" class="page" hidden>
+    <div class="back"><button type="button" data-act="go" data-view="lists"><svg><use href="#i-back"/></svg>Списки</button></div>
+    <div class="lhead"><h2 id="listTitle"></h2><button class="more" type="button" data-act="listMenu" aria-label="Действия со списком"><svg><use href="#i-more"/></svg></button></div>
+    <div id="listDanger"></div>
+    <ul class="list" id="listTasks"></ul>
+    <div id="listDone"></div>
+  </div>
+</div>
+
+<nav class="dock" id="dock" aria-label="Комнаты">
+  <div class="dock-in">
+    <div class="shelf-items">
+      <button class="dk" type="button" data-act="go" data-view="mail" id="mailThing" aria-label="Почта: письма совы и «Входящие»">
+        <svg viewBox="0 0 64 56" aria-hidden="true" class="rack"><ellipse class="halo2" cx="32" cy="30" rx="32" ry="26" fill="url(#glowR)"/>
+          <rect x="11" y="13" width="42" height="42" rx="4" fill="var(--wood)"/><rect x="9" y="11" width="46" height="6" rx="2.5" fill="var(--wood-dark)"/>
+          <rect x="15" y="21" width="19" height="14" rx="1.5" fill="#F3E2C2" transform="rotate(-8 24 28)"/><rect x="29" y="20" width="19" height="14" rx="1.5" fill="#FFFBF2" transform="rotate(6 38 27)"/>
+          <g class="env"><rect x="20" y="12" width="24" height="17" rx="1.5" fill="#FFFBF2" stroke="#C9A877" stroke-width="1.1"/><path d="M20.5 13 L32 21.5 L43.5 13" stroke="#C9A877" stroke-width="1.1" fill="none"/><circle cx="32" cy="21.5" r="3.2" fill="#C9553F"/></g>
+          <path d="M11 33 h42 v18 a4 4 0 0 1 -4 4 h-34 a4 4 0 0 1 -4 -4Z" fill="var(--wood-dark)"/>
+          <path d="M28 42 c0-3 4.5-3 4.5 0 c0-3 4.5-3 4.5 0 c0 4 -4.5 6.5 -4.5 6.5 s-4.5-2.5-4.5-6.5z" fill="#F3E2C2" opacity=".85" transform="translate(-0.5 -1)"/></svg>
+        <span>Почта</span><span class="badge" id="mailBadge" hidden></span></button>
+      <button class="dk" type="button" data-act="go" data-view="calendar" id="calThing" aria-label="Календарь: все дела по срокам">
+        <svg viewBox="0 0 64 56" aria-hidden="true"><path d="M32 3 L19 12 M32 3 L45 12" stroke="var(--wood-dark)" stroke-width="1.3" fill="none"/><circle cx="32" cy="3.5" r="2.2" fill="var(--wood-dark)"/>
+          <rect x="13" y="11" width="38" height="44" rx="3.5" fill="#FFFBF2" stroke="#E2D5C3" stroke-width="1.3"/><rect x="13" y="11" width="38" height="13" rx="3.5" fill="var(--rose)"/><rect x="13" y="19" width="38" height="5" fill="var(--rose)"/>
+          <text id="calMonth" x="32" y="21" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="8" fill="#fff"></text>
+          <text id="calDay" x="32" y="46" text-anchor="middle" font-family="Lora,Georgia,serif" font-weight="700" font-size="20" fill="#3A2E26"></text></svg>
+        <span>Календарь</span><span class="badge soft" id="calBadge" hidden></span></button>
+      <button class="dk" type="button" data-act="go" data-view="lists" aria-label="Списки">
+        <svg viewBox="0 0 64 56" aria-hidden="true">
+          <rect x="7" y="18" width="10" height="37" rx="2" fill="var(--calm)"/><rect x="18" y="12" width="9" height="43" rx="2" fill="var(--rose-dark)"/><rect x="28" y="21" width="10" height="34" rx="2" fill="var(--sage)"/>
+          <rect x="41" y="17" width="8" height="38" rx="2" fill="var(--accent)" transform="rotate(-14 41 55)"/>
+          <g fill="#FFFBF2" opacity=".75"><rect x="9.5" y="24" width="5" height="2" rx="1"/><rect x="20" y="18" width="5" height="2" rx="1"/><rect x="30.5" y="27" width="5" height="2" rx="1"/></g>
+          <path d="M50 55 h11 l-1.5 -10 h-8Z" fill="#FFFBF2"/><path d="M55.5 45 q-4 -7 -1.5 -12 M55.5 45 q3 -7 6 -8" stroke="var(--ok)" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+        <span>Списки</span></button>
+      <button class="dk" type="button" data-act="goals" id="goalsThing" aria-label="Цели">
+        <svg viewBox="0 0 64 56" aria-hidden="true"><defs><linearGradient id="pcSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E3560"/><stop offset="1" stop-color="#5A5584"/></linearGradient><linearGradient id="pcTrail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE29A" stop-opacity="0"/><stop offset="1" stop-color="#FFE29A"/></linearGradient></defs>
+          <ellipse cx="33" cy="54.500" rx="17" ry="1.800" fill="#000" opacity=".14"/>
+          <g transform="rotate(-6 32 55)"><rect x="12" y="9" width="41" height="46" rx="2.500" fill="#FFFBF2" stroke="#E2D5C3" stroke-width="1"/>
+            <rect x="15.500" y="12.500" width="34" height="32" rx="1.500" fill="url(#pcSky)"/>
+            <path d="M15.500 39 Q24 33 32 37 T49.500 35 V44.500 H15.500Z" fill="#3A4A3F"/>
+            <g fill="#FFF4D6"><circle cx="21" cy="18" r=".9"/><circle cx="27" cy="26" r=".7"/><circle cx="43" cy="30" r=".8"/><circle cx="46" cy="17" r=".7"/><circle cx="36" cy="16" r=".6"/></g>
+            <path d="M19 20 L37 29" stroke="url(#pcTrail)" stroke-width="3" stroke-linecap="round"/>
+            <path class="pc-star" d="M0 -5.500 L1.400 -1.800 L5.300 -1.700 L2.200 .7 L3.300 4.500 L0 2.300 L-3.300 4.500 L-2.200 .7 L-5.300 -1.700 L-1.400 -1.800Z" fill="#FFD66B" stroke="#F0B43C" stroke-width=".6" transform="translate(39 30)"/>
+            <path d="M18 49 h14 M18 52 h9" stroke="#C9B49A" stroke-width="1.100" stroke-linecap="round"/><path d="M41 48.500 l2 1.800 3.500-4" stroke="var(--rose-dark)" stroke-width="1.300" fill="none" stroke-linecap="round"/></g></svg>
+        <span>Цели</span><span class="badge soft" id="goalsBadge" hidden></span></button>
+    </div>
+    <button class="dk-plus" type="button" data-act="new" aria-label="Добавить дело">+</button>
+  </div>
+</nav>
+<div class="peek" id="peek" aria-live="polite"><svg class="pk" viewBox="34 14 160 150" aria-hidden="true">
+  <path d="M110 34 C150 34 170 62 171 96 C174 126 175 150 166 170 C155 191 134 197 110 197 C86 197 65 191 54 170 C45 150 46 126 49 96 C50 62 70 34 110 34 Z" fill="var(--owl)"/>
+  <path d="M110 130 C130 130 150 142 150 165 C150 185 132 195 110 195 C88 195 70 185 70 165 C70 142 90 130 110 130Z" fill="var(--belly)"/>
+  <path class="pk-ch" d="M92 150 q4 4 8 0 M112 150 q4 4 8 0 M102 166 q4 4 8 0 M122 166 q4 4 8 0 M82 166 q4 4 8 0" stroke="var(--owl-dark)" stroke-width="2.200" fill="none" stroke-linecap="round" opacity=".55"/>
+  <g class="pk-wing"><path d="M160 120 C176 112 190 120 190 136 C182 140 170 140 160 134Z" fill="var(--owl-dark)"/></g>
+  <g class="pk-head">
+    <path d="M64 70 C58 52 58 36 64 22 C70 34 80 44 94 50 C84 56 72 62 64 70 Z" fill="var(--owl-dark)"/><path d="M156 70 C162 52 162 36 156 22 C150 34 140 44 126 50 C136 56 148 62 156 70 Z" fill="var(--owl-dark)"/>
+    <path d="M110 40 C146 40 164 62 164 90 C164 112 150 124 110 124 C70 124 56 112 56 90 C56 62 74 40 110 40Z" fill="var(--owl)"/>
+    <path d="M110 62 C96 52 68 54 60 78 C52 102 64 124 88 125 C99 125 106 121 110 116 C114 121 121 125 132 125 C156 124 168 102 160 78 C152 54 124 52 110 62 Z" fill="var(--face)" stroke="var(--owl-dark)" stroke-opacity=".35" stroke-width="2"/>
+    <circle cx="88" cy="96" r="19" fill="var(--eye)"/><circle cx="132" cy="96" r="19" fill="var(--eye)"/>
+    <g class="pk-pup"><circle cx="89" cy="97" r="13" fill="var(--pupil)"/><circle cx="131" cy="97" r="13" fill="var(--pupil)"/><circle cx="94" cy="91.500" r="4.200" fill="#fff"/><circle cx="136" cy="91.500" r="4.200" fill="#fff"/></g>
+    <g class="pk-lid" fill="var(--owl)"><ellipse cx="88" cy="96" rx="20" ry="20"/><ellipse cx="132" cy="96" rx="20" ry="20"/></g>
+    <path d="M110 106 L101 114 L110 119 L119 114 Z" fill="var(--beak)"/><path class="pk-beak" d="M103 116 L110 128 L117 116 L110 119Z" fill="var(--beak)"/>
+  </g></svg><div><span id="peekTxt"></span><small id="peekGain"></small><span class="pk-acts" id="peekActs"></span></div></div>
+
+<div class="coach" id="coach" hidden>
+  <div class="coach-spot" id="coachSpot"></div>
+  <div class="coach-card" id="coachCard" role="dialog" aria-modal="true" aria-labelledby="coachText">
+    <svg class="pk coach-owl" id="coachOwl" viewBox="34 14 160 150" aria-hidden="true">
+  <path d="M110 34 C150 34 170 62 171 96 C174 126 175 150 166 170 C155 191 134 197 110 197 C86 197 65 191 54 170 C45 150 46 126 49 96 C50 62 70 34 110 34 Z" fill="var(--owl)"/>
+  <path d="M110 130 C130 130 150 142 150 165 C150 185 132 195 110 195 C88 195 70 185 70 165 C70 142 90 130 110 130Z" fill="var(--belly)"/>
+  <path class="pk-ch" d="M92 150 q4 4 8 0 M112 150 q4 4 8 0 M102 166 q4 4 8 0 M122 166 q4 4 8 0 M82 166 q4 4 8 0" stroke="var(--owl-dark)" stroke-width="2.200" fill="none" stroke-linecap="round" opacity=".55"/>
+  <g class="pk-wing"><path d="M160 120 C176 112 190 120 190 136 C182 140 170 140 160 134Z" fill="var(--owl-dark)"/></g>
+  <g class="pk-head">
+    <path d="M64 70 C58 52 58 36 64 22 C70 34 80 44 94 50 C84 56 72 62 64 70 Z" fill="var(--owl-dark)"/><path d="M156 70 C162 52 162 36 156 22 C150 34 140 44 126 50 C136 56 148 62 156 70 Z" fill="var(--owl-dark)"/>
+    <path d="M110 40 C146 40 164 62 164 90 C164 112 150 124 110 124 C70 124 56 112 56 90 C56 62 74 40 110 40Z" fill="var(--owl)"/>
+    <path d="M110 62 C96 52 68 54 60 78 C52 102 64 124 88 125 C99 125 106 121 110 116 C114 121 121 125 132 125 C156 124 168 102 160 78 C152 54 124 52 110 62 Z" fill="var(--face)" stroke="var(--owl-dark)" stroke-opacity=".35" stroke-width="2"/>
+    <circle cx="88" cy="96" r="19" fill="var(--eye)"/><circle cx="132" cy="96" r="19" fill="var(--eye)"/>
+    <g class="pk-pup"><circle cx="89" cy="97" r="13" fill="var(--pupil)"/><circle cx="131" cy="97" r="13" fill="var(--pupil)"/><circle cx="94" cy="91.500" r="4.200" fill="#fff"/><circle cx="136" cy="91.500" r="4.200" fill="#fff"/></g>
+    <g class="pk-lid" fill="var(--owl)"><ellipse cx="88" cy="96" rx="20" ry="20"/><ellipse cx="132" cy="96" rx="20" ry="20"/></g>
+    <path d="M110 106 L101 114 L110 119 L119 114 Z" fill="var(--beak)"/><path class="pk-beak" d="M103 116 L110 128 L117 116 L110 119Z" fill="var(--beak)"/>
+  </g></svg>
+    <div class="coach-body"><div class="coach-top"><span><span class="who" id="coachWho">Сова</span><span class="step" id="coachStep"></span></span><button class="link" type="button" id="coachSkip">Пропустить</button></div><p id="coachText"></p><div id="coachUi" class="coach-ui"></div></div>
+  </div>
+</div>
+
+<div class="veil" id="goalSheet" hidden></div>
+
+<div class="gone" id="gone" hidden>
+  <div class="gone-card" role="dialog" aria-modal="true" aria-labelledby="goneTitle">
+    <svg class="gone-art" viewBox="0 0 200 120" aria-hidden="true"><ellipse cx="100" cy="104" rx="80" ry="10" fill="var(--sage)" opacity=".7"/><ellipse cx="100" cy="104" rx="66" ry="6" fill="none" stroke="var(--paper)" stroke-dasharray="4 4" opacity=".7"/>
+      <path d="M118 30 c-14 4 -24 16 -26 32 l-4 14 3 1 4 -12 c14 -2 22 -16 23 -35Z" fill="var(--owl)" class="gone-feather"/></svg>
+    <h2 id="goneTitle"></h2><p id="goneText"></p>
+    <form id="goneForm" class="gone-form">
+      <label class="promise"><input type="checkbox" id="goneOk"><span id="gonePromise"></span></label>
+      <input id="goneName" placeholder="Имя новой совы (можно потом)" aria-label="Имя новой совы" autocomplete="off">
+      <button class="primary" type="submit" id="goneBtn" disabled>Завести новую сову</button>
+    </form>
+  </div>
+</div>
+
+<div class="veil" id="editor" hidden></div>
+
+<div class="chat" id="chat" hidden role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+  <div class="chat-in">
+    <div class="chat-head"><svg class="av" aria-hidden="true"><use href="#i-owl"/></svg>
+      <div><h2 id="chatTitle"></h2><p id="chatSub"></p></div>
+      <button class="del" type="button" data-act="chatClose" aria-label="Закрыть разговор"><svg><use href="#i-x"/></svg></button></div>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <div class="answers" id="answers"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
