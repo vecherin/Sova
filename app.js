@@ -17,7 +17,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
 (function(){
   // Hunger per hour by time of day: 8–18 loses 2/3 of a full belly, 18–24 the last third, 0–8 slower (an evening meal is half gone by morning)
   const HUNGER_DAY=20/3, HUNGER_EVE=50/9, HUNGER_NIGHT=3.5;
-  const KEY=window.SOVA_KEY||'sova-proto-v7', H=3600e3, M=60e3, D=24*H, CLOSE=23, EVE=20;
+  const KEY=window.SOVA_KEY||'sova-proto-v7', H=3600e3, M=60e3, D=24*H, CLOSE=23, EVE=20, MORNING_END=18;
   const $=id=>document.getElementById(id);
   const uid=()=>Math.random().toString(36).slice(2,9);
   const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -111,8 +111,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       else if(t-S.lastFed>3*D)S.gone='hungry';
       if(S.gone)return;
     }
-    // the owl's morning letter
-    if(hourOf(t)>=6&&!closed()&&!S.letters.some(l=>l.kind==='morning'&&l.day===tk)){S.letters.push({id:uid(),kind:'morning',day:tk,read:false});0}
+    // the owl's morning letter: 6:00–18:00 only. Later in the day choosing tasks makes no sense — the evening letter (20:00) plans tomorrow;
+    // an unread morning letter is retired at 18:00, so the first evening never brings two letters (Ilya, 18.11)
+    if(hourOf(t)>=6&&hourOf(t)<MORNING_END&&!S.letters.some(l=>l.kind==='morning'&&l.day===tk)){S.letters.push({id:uid(),kind:'morning',day:tk,read:false});0}
+    if(hourOf(t)>=MORNING_END&&S.letters.some(l=>l.kind==='morning'&&!l.read))S.letters=S.letters.filter(l=>!(l.kind==='morning'&&!l.read));
     if(S.week.due<=t&&!S.letters.some(l=>l.kind==='week'&&!l.read)){S.letters.push({id:uid(),kind:'week',day:tk,read:false});0}
     // the owl's evening letter: from 20:00, once a day; on a week-review evening the review takes its place; an unread morning letter is retired
     if(hourOf(t)>=EVE&&!S.letters.some(l=>l.kind==='evening'&&l.day===tk)&&!letter('week')&&S.week.lastDay!==tk){
