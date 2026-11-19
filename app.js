@@ -1015,7 +1015,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='plant'){return startPlant()}
     else if(a==='star'){const g=S.goals.find(y=>y.id===id);if(g)sayOverride=`«${g.title}» — достигнута ${new Date(g.doneAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}.`}
     else if(a==='openLetter'){return openTalk(b.dataset.kind)}
-    else if(a==='chatClose'){return closeTalk(false)}
+    else if(a==='chatClose'){return closeTalk(!!(T&&T.atEnd))}
     else if(DEMO.actions[a]){if(DEMO.actions[a](b)==='stop')return}
     render();
   });
@@ -1045,7 +1045,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   $('bubble').addEventListener('click',()=>pane===2?marsPoke():openTalk('chat'));
   $('bubble').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pane===2?marsPoke():openTalk('chat')}});
   $('newListForm').addEventListener('submit',e=>{e.preventDefault();const v=$('newListInput').value.trim();if(!v)return;S.lists.push({id:uid(),name:v});$('newListInput').value='';$('newListForm').hidden=true;render()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('goalSheet').hidden&&openGoalId)closeGoal();else if(E)closeEditor();else if(T)closeTalk(false)}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('goalSheet').hidden&&openGoalId)closeGoal();else if(E)closeEditor();else if(T)closeTalk(!!T.atEnd)}});
 
   // swipe from the left edge on any other screen: back to the owl (the portrait left the shelf in v30)
   {let es=null;
@@ -1139,7 +1139,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(T&&T.kind==='intro'&&!finished){S.onboarded=true;S.startDay=today()}
     sheetHide($('chat'));document.body.style.overflow='';T=null;render();
   }
-  const finishBtn=label=>{box().innerHTML=`<button class="primary" type="button">${esc(label)}</button>`;box().querySelector('button').onclick=()=>closeTalk(true)};
+  const finishBtn=label=>{if(T)T.atEnd=true; // the talk is over: closing it with ✕ now counts as finished (v45: the evening letter came back)
+    box().innerHTML=`<button class="primary" type="button">${esc(label)}</button>`;box().querySelector('button').onclick=()=>closeTalk(true)};
   const later=(fn,ms)=>setTimeout(fn,ms||450);
 
   // Знакомство прямо на главном экране: подсветка элемента и объяснение совы
