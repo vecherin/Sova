@@ -482,6 +482,8 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 .room .bowl,.room .think{opacity:0;transition:opacity .5s ease}
 .scene[data-mood="hungry"] .room .bowl,.scene[data-mood="hungry"] .room .think{opacity:1}
 .scene[data-mood="hungry"] .room .think{animation:floaty 3s ease-in-out infinite}
+/* v44: one or two fish left — whatever her mood, she thinks of a mouse */
+.scene[data-food="think"] .room .think{opacity:1;animation:floaty 3s ease-in-out infinite}
 .room .sky-night,.room .stars-g,.room .moon{opacity:0;transition:opacity .8s}
 .scene[data-night="1"] .room .sky-night,.scene[data-night="1"] .room .stars-g,.scene[data-night="1"] .room .moon{opacity:1}
 .scene[data-night="1"] .room .sun{opacity:0}

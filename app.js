@@ -18,8 +18,9 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   // Hunger per hour by time of day: 8–18 loses 2/3 of a full belly, 18–24 the last third, 0–8 slower (an evening meal is half gone by morning)
   const HUNGER_DAY=20/3, HUNGER_EVE=50/9, HUNGER_NIGHT=3.5;
   const KEY=window.SOVA_KEY||'sova-proto-v7', H=3600e3, M=60e3, D=24*H, CLOSE=23, EVE=20, MORNING_END=18;
-  // hunger zones (v43): five fish on the tag, 20% each — 3–5 fish fed, 2 fish «хочет есть», 1 fish hungry and cross (Sofia, 19.11)
-  const HUNGRY_YELLOW=40, HUNGRY_RED=20;
+  // hunger zones (v44, Ilya): five fish on the tag, 20% each. 3–5 fish — fed; 1–2 fish — the owl keeps her mood and only thinks
+  // of a mouse (bubble over her head); 0 fish — truly hungry: huge eyes, open beak
+  const HUNGRY_YELLOW=40;
   const $=id=>document.getElementById(id);
   const uid=()=>Math.random().toString(36).slice(2,9);
   const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -165,9 +166,9 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const base=Math.max(waitLvl,emptyLvl,failed?2:0,Math.min(miss,2));
     const level=base||(morningLate?1:0);
     const partial=!cl&&items.length>0&&done>0&&!allDone&&h>=20;
-    const hz=S.hunger<HUNGRY_RED?'red':S.hunger<HUNGRY_YELLOW?'yellow':'green'; // the same edges as the fish on the tag
+    const hz=S.hunger<=0?'red':S.hunger<=HUNGRY_YELLOW?'yellow':'green'; // the same edges as the fish on the tag
     let mood='ok';
-    if(S.sick)mood='sick';else if(hz==='red')mood='angry';else if(level>=2)mood='sulky';else if(level===1)mood='sad';else if(hz==='yellow')mood='hungry';else if(cl)mood='sleep';else if(allDone||done>0)mood='happy';
+    if(S.sick)mood='sick';else if(hz==='red')mood='hungry';else if(level>=2)mood='sulky';else if(level===1)mood='sad';else if(cl)mood='sleep';else if(allDone||done>0)mood='happy';
     return {t,h,hz,items,morningLate,weekLate,waitLvl,emptyLvl,failed,miss,partial,allDone,mood,idle:waitLvl>0};
   }
   const MOOD={ok:'спокойна',happy:'счастлива',sad:'грустит',hungry:'хочет есть',angry:'злится',sulky:'нахохлилась',sick:'болеет',sleep:'спит'};
@@ -188,7 +189,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const name=MOOD[mood]||'';$('moodName').textContent=name.charAt(0).toUpperCase()+name.slice(1);
     $('moodTag').dataset.lv=ml;$('moodIco').innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${FACE[mood]||FACE.ok}</svg>`;
     $('moodPips').innerHTML=pipsHtml(ml,'i-heart');$('moodTag').setAttribute('aria-label',`Настроение: ${name}, ${ml} из 5`);
-    $('hungerTxt').textContent=hungerWord();$('hungerTag').dataset.lv=hl===3?4:hl===2?3:hl; // colour by zone: 3 fish still green, 2 amber, 1 red
+    $('hungerTxt').textContent=hungerWord();$('hungerTag').dataset.lv=hl>=3?Math.max(hl,4):hl>0?3:0; // colour by zone: 3+ fish green, 1–2 amber, none red
     $('hungerPips').innerHTML=pipsHtml(hl,'i-fishpip');$('hungerTag').setAttribute('aria-label',`Сытость: ${hungerWord().toLowerCase()}, ${hl} из 5`);
   }
   const PREVIEW={}; // texts for the demo mood preview
@@ -306,7 +307,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
 
   /* ---------- render ---------- */
   let view='home',openList=null,showDone=false,sayOverride=null,lastKey='',preview=null;
-  const hungerWord=()=>S.hunger>=HUNGRY_YELLOW?'Сытая':S.hunger>=HUNGRY_RED?'Хочет есть':'Голодная';
+  const hungerWord=()=>S.hunger>HUNGRY_YELLOW?'Сытая':S.hunger>0?'Хочет есть':'Голодная';
   function go(v,arg){if(v==='shop'){closeCareSafe();const ms=marsSay,was=view;if(view!=='home'){view='home';render()}marsSay=ms;window.scrollTo(0,0);return showPane(2,was==='home')}
     if(v===view&&v!=='home'&&!arg)v='home';closeCareSafe();$('peek').classList.remove('on');const wasHome=view==='home';view=v;if(arg)openList=arg;listMenu=false;confirmDel=null;showListDone=false;window.scrollTo(0,0);render();if(v==='home'&&!wasHome)showPane(0)}
   function taskRow(x,t,opts){
@@ -347,7 +348,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     $('date').textContent=new Date(t).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
     if(DEMO.render)DEMO.render(t);
     renderWindow();
-    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.night=(st.h>=21||st.h<6)?'1':'0';sc.dataset.all=st.allDone&&!tourOn?'1':'0';
+    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=(st.h>=21||st.h<6)?'1':'0';sc.dataset.all=st.allDone&&!tourOn?'1':'0';
     if(!$('care').hidden)renderTags(mood);
     sc.dataset.scarf=S.scarf?'1':'0';sc.dataset.lights=S.lightsOff?'0':'1';sc.dataset.bed=S.decor&&S.decor.bed?'1':'0';sc.dataset.yarn=S.decor&&S.decor.yarn?'1':'0';sc.dataset.shelf=S.decor&&S.decor.shelf?'1':'0';sc.dataset.shelf2=S.decor&&S.decor.shelf2?'1':'0';renderShelf();
     // the lantern by the owl is the streak: lit today, waiting for today's first task, or out
