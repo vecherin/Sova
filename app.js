@@ -1744,7 +1744,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const en=Object.entries(S.energy||{}).filter(([k])=>keyToTime(k)>=since),low=en.filter(([,e])=>e==='low').length;
     const diary=(S.diary||[]).filter(e=>keyToTime(e.day)>=since).sort((a,b)=>a.day.localeCompare(b.day)).map(e=>`• ${kd(e.day)}: ${e.text}`).join('\n')||'записей нет';
     const name=S.owlName||'Сова';
-    return `Привет! Будь моим коучем по целям. Говори со мной как ${name} — моя сова из приложения-планировщика.
+    // the first line names the chat: ChatGPT titles a chat from its opening, the owl emoji helps find it in the list (Ilya)
+    return `🦉 Разговор с совой о ${g0?`цели «${g0.title}»`:'целях'}
+
+Привет! Будь моим коучем по целям. Говори со мной как ${name} — моя сова из приложения-планировщика.
 
 Как говорить:
 — на «ты», в женском роде (ты — сова), тепло, коротко, бережно; без давления, стыда и обесценивания. Мне важно реализоваться, и я из-за этого переживаю;
