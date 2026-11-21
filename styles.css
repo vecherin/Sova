@@ -684,6 +684,17 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 .sw[aria-pressed="true"]{border-color:var(--ink)}
 #listTitle{display:flex;align-items:center;gap:10px}
 #listTitle .ldot{width:14px;height:14px}
+/* v46: the diary */
+.diary-new{display:flex;flex-direction:column;gap:10px}
+.diary-new textarea,.dedit textarea{width:100%;box-sizing:border-box;font:inherit;font-weight:600;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
+.diary-new .primary{align-self:flex-end}
+.dday{margin-top:18px}
+.dday h3{font-family:Lora,Georgia,serif;font-size:16px;margin:0 4px 8px}
+.dentry{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;font:inherit;font-weight:600;color:var(--ink);line-height:1.45;white-space:pre-wrap}
+.lgroup li+li .dentry{border-top:1px solid var(--line)}
+.dedit{padding:12px}
+.dedit .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.link.danger{color:var(--danger)}
 
 /* Shop, goal sheet */
 .wallet{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-family:var(--display);font-weight:700;white-space:nowrap}
@@ -797,7 +808,9 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 .steps .stepr input{flex:1}
 .veil{position:fixed;inset:0;z-index:60;background:rgba(10,14,12,.45);display:flex;align-items:flex-end;justify-content:center;padding-bottom:var(--cut)}
 .sheet{width:100%;max-width:520px;overflow-y:auto;background:var(--bg);border-radius:24px 24px 0 0;
-  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;max-height:calc(92vh - var(--cut))}
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;max-height:calc(100dvh - var(--cut) - env(safe-area-inset-top,0px) - 56px)}
+/* v46: the sheet scrolls as a whole; its parts keep their height (the goal's task list was squeezed to one cut-off row) */
+.sheet>*{flex-shrink:0}
 /* smooth sheets: the veil fades, the sheet glides up with a soft stop; closing is quicker */
 .veil.opening{animation:veilIn .3s ease}
 .veil.opening .sheet{animation:sheetUp .46s cubic-bezier(.22,1,.36,1)}
@@ -821,6 +834,13 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 .wdays{display:flex;gap:6px;padding:10px 6px 8px;border-top:1px solid var(--line)}
 .wd{flex:1;min-width:0;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-weight:800;font-size:14px}
 .wd[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+
+/* v46: shift schedule in the repeat popup */
+.shrow{display:flex;align-items:center;gap:10px;padding:6px 2px;font-weight:700}
+.shrow span{flex:1}
+.shrow b{min-width:22px;text-align:center;font-size:18px}
+.shrow .secondary{width:40px;height:40px;padding:0;font-size:20px}
+.shrow input{flex:0 0 auto}
 
 /* Conversations with the owl */
 .inline{display:flex;gap:8px}

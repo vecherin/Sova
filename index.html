@@ -368,6 +368,14 @@
     </section>
   </div>
 
+  <!-- DIARY (v46): what mattered in her days; the evening talk asks, here she can read and add -->
+  <div id="v-diary" class="page" hidden>
+    <div class="back"><button type="button" data-act="go" data-view="home"><svg><use href="#i-back"/></svg>К сове</button></div>
+    <h2>Дневник</h2>
+    <form class="diary-new" id="diaryForm"><textarea id="diaryIn" rows="3" placeholder="Что важного было сегодня?" aria-label="Новая запись в дневник"></textarea><button class="primary" type="submit">Записать</button></form>
+    <div id="diaryList"></div>
+  </div>
+
   <!-- ONE LIST -->
   <div id="v-list" class="page" hidden>
     <div class="back"><button type="button" data-act="go" data-view="lists"><svg><use href="#i-back"/></svg>Списки</button></div>
@@ -381,6 +389,15 @@
 <nav class="dock" id="dock" aria-label="Комнаты">
   <div class="dock-in">
     <div class="shelf-items">
+      <button class="dk" type="button" data-act="go" data-view="diary" id="diaryThing" aria-label="Дневник: что было важного">
+        <svg viewBox="0 0 64 56" aria-hidden="true"><ellipse cx="32" cy="54.500" rx="18" ry="1.800" fill="#000" opacity=".14"/>
+          <g transform="rotate(-4 32 55)"><rect x="17" y="10" width="32" height="44" rx="3" fill="#FFFBF2" stroke="#E2D5C3" stroke-width="1"/>
+            <rect x="14" y="8" width="32" height="45" rx="3.500" fill="var(--sage)"/><rect x="14" y="8" width="5" height="45" rx="2" fill="#000" opacity=".12"/>
+            <rect x="21" y="16" width="19" height="11" rx="2" fill="#FFFBF2" opacity=".9"/><path d="M24 20 h13 M24 23.500 h9" stroke="#C9B49A" stroke-width="1.100" stroke-linecap="round"/>
+            <path d="M30.500 41 c-2.300-2.500-5-1-5 1.300 c0 2.500 5 5.200 5 5.200 s5-2.700 5-5.200 c0-2.300-2.700-3.800-5-1.300z" fill="#FFFBF2" opacity=".8"/>
+            <rect x="41" y="8" width="2.400" height="45" fill="var(--rose-dark)" opacity=".85"/>
+            <path d="M37 52 v4.500 l2 -1.600 2 1.600 V52" fill="var(--accent)"/></g></svg>
+        <span>Дневник</span></button>
       <button class="dk" type="button" data-act="go" data-view="mail" id="mailThing" aria-label="Почта: письма совы и «Входящие»">
         <svg viewBox="0 0 64 56" aria-hidden="true" class="rack"><ellipse class="halo2" cx="32" cy="30" rx="32" ry="26" fill="url(#glowR)"/>
           <rect x="11" y="13" width="42" height="42" rx="4" fill="var(--wood)"/><rect x="9" y="11" width="46" height="6" rx="2.5" fill="var(--wood-dark)"/>
@@ -402,17 +419,6 @@
           <g fill="#FFFBF2" opacity=".75"><rect x="9.5" y="24" width="5" height="2" rx="1"/><rect x="20" y="18" width="5" height="2" rx="1"/><rect x="30.5" y="27" width="5" height="2" rx="1"/></g>
           <path d="M50 55 h11 l-1.5 -10 h-8Z" fill="#FFFBF2"/><path d="M55.5 45 q-4 -7 -1.5 -12 M55.5 45 q3 -7 6 -8" stroke="var(--ok)" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
         <span>Списки</span></button>
-      <button class="dk" type="button" data-act="goals" id="goalsThing" aria-label="Цели">
-        <svg viewBox="0 0 64 56" aria-hidden="true"><defs><linearGradient id="pcSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E3560"/><stop offset="1" stop-color="#5A5584"/></linearGradient><linearGradient id="pcTrail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE29A" stop-opacity="0"/><stop offset="1" stop-color="#FFE29A"/></linearGradient></defs>
-          <ellipse cx="33" cy="54.500" rx="17" ry="1.800" fill="#000" opacity=".14"/>
-          <g transform="rotate(-6 32 55)"><rect x="12" y="9" width="41" height="46" rx="2.500" fill="#FFFBF2" stroke="#E2D5C3" stroke-width="1"/>
-            <rect x="15.500" y="12.500" width="34" height="32" rx="1.500" fill="url(#pcSky)"/>
-            <path d="M15.500 39 Q24 33 32 37 T49.500 35 V44.500 H15.500Z" fill="#3A4A3F"/>
-            <g fill="#FFF4D6"><circle cx="21" cy="18" r=".9"/><circle cx="27" cy="26" r=".7"/><circle cx="43" cy="30" r=".8"/><circle cx="46" cy="17" r=".7"/><circle cx="36" cy="16" r=".6"/></g>
-            <path d="M19 20 L37 29" stroke="url(#pcTrail)" stroke-width="3" stroke-linecap="round"/>
-            <path class="pc-star" d="M0 -5.500 L1.400 -1.800 L5.300 -1.700 L2.200 .7 L3.300 4.500 L0 2.300 L-3.300 4.500 L-2.200 .7 L-5.300 -1.700 L-1.400 -1.800Z" fill="#FFD66B" stroke="#F0B43C" stroke-width=".6" transform="translate(39 30)"/>
-            <path d="M18 49 h14 M18 52 h9" stroke="#C9B49A" stroke-width="1.100" stroke-linecap="round"/><path d="M41 48.500 l2 1.800 3.500-4" stroke="var(--rose-dark)" stroke-width="1.300" fill="none" stroke-linecap="round"/></g></svg>
-        <span>Цели</span><span class="badge soft" id="goalsBadge" hidden></span></button>
     </div>
     <button class="dk-plus" type="button" data-act="new" aria-label="Добавить дело">+</button>
   </div>

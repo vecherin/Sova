@@ -70,8 +70,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   const PALETTE=[['#6E8E9D','Синий'],['#5E8C8A','Бирюзовый'],['#7FA36A','Зелёный'],['#C98A3E','Медовый'],['#C0654A','Терракотовый'],['#D48A9A','Розовый'],['#8C6A8E','Сливовый'],['#9A7B5B','Ореховый']];
   // repeating tasks: every day, or on chosen weekdays (x.days holds getDay() numbers, Sunday is 0)
   const WD=['вс','пн','вт','ср','чт','пт','сб'],WEEK_ORDER=[1,2,3,4,5,6,0];
-  const repeatsOn=(x,k)=>!!x.repeat&&(!x.days||!x.days.length||x.days.includes(new Date(keyToTime(k)).getDay()));
-  function repeatLabel(x){const d=x.days&&x.days.length?[...x.days].sort((a,b)=>WEEK_ORDER.indexOf(a)-WEEK_ORDER.indexOf(b)):null;
+  // v46: or by her shift schedule (2/2 and the like): S.shift={on,off,start}, x.shift='work'|'off' — one schedule for all tasks
+  const shiftDay=k=>{const s=S.shift;if(!s)return null;const n=s.on+s.off,i=((Math.round((keyToTime(k)-keyToTime(s.start))/D)%n)+n)%n;return i<s.on?'work':'off'};
+  const repeatsOn=(x,k)=>!!x.repeat&&(x.shift?shiftDay(k)===x.shift:(!x.days||!x.days.length||x.days.includes(new Date(keyToTime(k)).getDay())));
+  function repeatLabel(x){if(x.shift)return x.shift==='work'?'рабочие дни по графику':'выходные по графику';const d=x.days&&x.days.length?[...x.days].sort((a,b)=>WEEK_ORDER.indexOf(a)-WEEK_ORDER.indexOf(b)):null;
     if(!d||d.length===7)return 'каждый день';const k=d.join();if(k==='1,2,3,4,5')return 'по будням';if(k==='6,0')return 'по выходным';return d.map(i=>WD[i]).join(', ')}
   const letter=kind=>S.letters.find(l=>l.kind===kind&&!l.read);
   const unreadLetters=()=>S.letters.filter(l=>!l.read);
@@ -328,14 +330,14 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     tick();
     streakCheck();
     const st=status(),t=st.t,isClosed=closed(),said=sayOverride;
-    ['home','calendar','mail','lists','list'].forEach(v=>$('v-'+v).hidden=view!==v);
+    ['home','calendar','mail','lists','list','diary'].forEach(v=>$('v-'+v).hidden=view!==v);
     $('feathers').textContent=Math.round(S.feathers);
-    {const gt=$('goalsThing');if(gt){view==='home'&&pane===1?gt.setAttribute('aria-current','page'):gt.removeAttribute('aria-current')}}
     document.querySelectorAll('.dk[data-view]').forEach(d=>{if(d.dataset.view===view||(view==='list'&&d.dataset.view==='lists'))d.setAttribute('aria-current','page');else d.removeAttribute('aria-current')});
     if(view==='home')renderHome(st,t,isClosed);
     if(view==='calendar')renderCalendar(t,isClosed);
     if(view==='mail')renderMail(t);
     if(view==='lists')renderLists();
+    if(view==='diary')renderDiary(t);
     if(view==='list')renderList(t);
     renderGone();
     if(DEMO.after)DEMO.after(); // build hook: the backup reminder in Sofia's build
@@ -371,9 +373,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const ml=$('mailThing');ml.dataset.letter=unreadLetters().length?'1':'0';
     const inboxN=S.tasks.filter(x=>x.list==='inbox'&&!x.done&&!x.planned).length;
     {const late=S.tasks.filter(x=>!x.done&&x.due&&dayDiff(x.due,t)<0).length,cb=$('calBadge');cb.hidden=!late;cb.textContent=late;
-     $('calThing').setAttribute('aria-label','Календарь: все дела по срокам'+(late?`, просрочено ${cnt(late,'дело','дела','дел')}`:''));
-     const wl=sillGoals().filter(g=>wiltOf(g)).length,gb=$('goalsBadge');gb.hidden=!wl;gb.textContent=wl;
-     $('goalsThing').setAttribute('aria-label','Цели'+(wl?`: подвяло ${cnt(wl,'растение','растения','растений')}`:''))}
+     $('calThing').setAttribute('aria-label','Календарь: все дела по срокам'+(late?`, просрочено ${cnt(late,'дело','дела','дел')}`:''))}
     const badge=$('mailBadge');badge.hidden=!unreadLetters().length;badge.textContent=unreadLetters().length;
     ml.setAttribute('aria-label',`Почта${unreadLetters().length?': есть письмо от совы':''}, во «Входящих» ${cnt(inboxN,'запись','записи','записей')}`);
     // today
@@ -671,7 +671,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const row=g=>{const ts=goalTasks(g),d=ts.filter(x=>x.done).length,wl=wiltOf(g),st=stageOf(g);
       return `<li><button class="grow" type="button" data-act="goal" data-id="${g.id}"><svg class="gi${g.plant?'':' gseed'}" viewBox="-22 -22 44 44" aria-hidden="true"${g.plant?` style="background:${FRUIT_BG[g.plant]||'var(--paper)'}"`:''}>${g.plant?`<g${wl?` filter="url(#wilt${wl})"`:''}>${fruitSVG(g.plant)}</g>`:'<use href="#f-seed" x="-17" y="-17" width="34" height="34"/>'}</svg>
         <span class="gt"><b>${esc(g.title)}</b><small>${d} из ${cnt(ts.length,'дела','дел','дел')} · ${g.due?(dayDiff(g.due,t)<0?'срок прошёл':'до '+fmtDay(g.due)):''}</small>${!g.plant?`<small class="gw">${sillGoals().length>=POTS?'Ждёт места на подоконнике':'Ждёт семечка'}</small>`:wl?`<small class="gw">${wl===2?'Растение чахнет':'Растение подвяло'}</small>`:''}</span>${ic('i-chev','chev')}</button></li>`};
-    $('goalsList').innerHTML=gs.length?gs.map(row).join(''):'<li class="note">Целей пока нет. Цель — несколько дел к одному сроку, ради чего-то большого.</li>';
+    $('goalsList').innerHTML=gs.length?gs.map(row).join(''):'<li class="empty">Целей пока нет. Цель — несколько дел к одному сроку, ради чего-то большого.</li>';
     $('goalsStars').textContent=stars?`Звёзд за окном: ${stars}`:'';
   }
   // a new goal starts from «+» → «Цель»: a seed is needed first, and it costs feathers; what was typed becomes the goal's name
@@ -733,7 +733,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const lists=[{id:'inbox',name:'Входящие'},...S.lists];
     const distRow=x=>`<li class="gstep"><span class="gtitle"><span>${esc(x.title)}</span></span><select data-dist="${x.id}" aria-label="Куда перенести «${esc(x.title)}»"><option value="">в цели</option>${lists.map(l=>`<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select></li>`;
     $('goalSheet').innerHTML=`<div class="sheet goal-sheet" role="dialog" aria-modal="true" aria-label="Цель: ${esc(g.title)}">
-      <div class="ed-top"><span></span><span class="grab"></span><span></span></div>
+      <div class="ed-top"><span></span><span class="grab"></span><button class="primary ed-save" type="button" data-g="close">Готово</button></div>
       <div class="goal-head"><svg class="gi${g.plant?'':' gseed'}" viewBox="-22 -22 44 44" aria-hidden="true"${g.plant?` style="background:${FRUIT_BG[g.plant]||'var(--paper)'}"`:''}>${g.plant?`<g${wl?` filter="url(#wilt${wl})"`:''}>${fruitSVG(g.plant)}</g>`:'<use href="#f-seed" x="-17" y="-17" width="34" height="34"/>'}</svg><div><small>${g.plant?PLANTS[g.plant]+' · '+(wl?wiltWord(g,wl):STAGE[st]):'Не на подоконнике'}</small><h2>${esc(g.title)}</h2></div></div>
       <label class="gdue">${ic('i-flag','mi')}<span>Срок: <b>${g.due?fmtDay(g.due):'не задан'}</b>${g.due?` · ${dueLeft(g.due)}`:''}</span><input type="date" id="gDue" value="${g.due||''}" aria-label="Срок цели"></label>
       ${wl&&lt?`<div class="gnote warn"><span>${wl===2?'Растение чахнет':'Растение подвяло'}: «${esc(short(lt.title,40))}» ${lt.due&&dayDiff(lt.due,t)<0?'ждёт с '+fmtDay(lt.due):'ждёт своей очереди'}.</span>${lt.planned===planDay()?'':`<button class="secondary" type="button" data-g="today" data-v="${lt.id}">${closed()?'На завтра':'В сегодня'}</button>`}</div>`:''}
@@ -758,6 +758,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   function dropGoal(g){S.tasks.forEach(x=>{if(x.goal===g.id){delete x.goal;if(x.list==='goals')x.list='inbox'}});S.goals=S.goals.filter(x=>x!==g)}
   $('goalSheet').addEventListener('click',e=>{
     if(e.target===$('goalSheet'))return closeGoal();
+    if(e.target.closest('[data-g="close"]'))return closeGoal(); // v46: a way out on iPhone — the strip above the sheet hid under the clock
     const b=e.target.closest('[data-g]');if(!b||b.tagName==='LABEL')return;const g=S.goals.find(x=>x.id===openGoalId);if(!g)return;const a=b.dataset.g,x=S.tasks.find(y=>y.id===b.dataset.v);
     if(a==='done'&&x){toggleDone(x,null);return openGoal(g.id)}
     else if(a==='edit'&&x){closeGoal();return openEditor(x.id)}
@@ -794,7 +795,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     $('listTitle').innerHTML=`<i class="ldot" style="background:${listColor(l.id)}" aria-hidden="true"></i>${esc(l.name)}`;
     const open=S.tasks.filter(x=>x.list===l.id&&!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
     const done=S.tasks.filter(x=>x.list===l.id&&x.done);
-    $('listTasks').innerHTML=open.length?open.map(x=>taskRow(x,t,{plus:!x.repeat,lock:closed()})).join(''):'<li class="note">В списке пока ничего нет. Добавь дело кнопкой «+».</li>';
+    $('listTasks').innerHTML=open.length?open.map(x=>taskRow(x,t,{plus:!x.repeat,lock:closed()})).join(''):'<li class="empty">В списке пока ничего нет. Добавь дело кнопкой «+».</li>';
     $('listDone').innerHTML=done.length?`<button class="link" type="button" data-act="toggleListDone">${showListDone?'Скрыть сделанные':'Показать сделанные'} (${done.length})</button>${showListDone?`<ul class="list" style="margin-top:10px">${done.map(x=>taskRow(x,t,{})).join('')}</ul>`:''}`:'';
     $('listDanger').innerHTML=confirmDel===l.id?`<div class="empty" style="text-align:left;align-items:flex-start">Удалить список «${esc(l.name)}»? Его дела переедут во «Входящие».<div class="actions"><button class="secondary" type="button" data-act="delList" data-list="${l.id}">Да, удалить</button><button class="secondary" type="button" data-act="cancelDel">Оставить</button></div></div>`
       :listMenu==='rename'?`<form class="inline" id="renameForm"><input id="renameInput" value="${esc(l.name)}" aria-label="Новое название списка" autocomplete="off"><button type="submit">Сохранить</button></form>`
@@ -839,13 +840,23 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
         <button class="po" type="button" data-ed="open" data-v="repeat" aria-pressed="${d.repeat}"><span>Повторять…</span>${d.repeat?`<small>${repeatLabel(d)}</small>`:''}</button>
         ${d.due?'<button class="po dangerous" type="button" data-ed="clear" data-v="due"><span>Без срока</span></button>':''}</div>`;
     }else if(P==='rep'){
-      const ds=d.repeat?(d.days&&d.days.length?d.days:[0,1,2,3,4,5,6]):[],same=a=>d.repeat&&a.length===ds.length&&a.every(i=>ds.includes(i));
+      const ds=d.repeat?(d.days&&d.days.length?d.days:[0,1,2,3,4,5,6]):[],same=a=>d.repeat&&!d.shift&&a.length===ds.length&&a.every(i=>ds.includes(i));
       pop=`<div class="pop${popNew?' fresh':''}"><h3>Повторять</h3>
         <button class="po" type="button" data-ed="repset" data-v="all" aria-pressed="${same([0,1,2,3,4,5,6])}"><span>Каждый день</span></button>
         <button class="po" type="button" data-ed="repset" data-v="1,2,3,4,5" aria-pressed="${same([1,2,3,4,5])}"><span>По будням</span></button>
         <button class="po" type="button" data-ed="repset" data-v="6,0" aria-pressed="${same([6,0])}"><span>По выходным</span></button>
-        <div class="wdays" role="group" aria-label="Дни недели">${WEEK_ORDER.map(i=>`<button class="wd" type="button" data-ed="repday" data-v="${i}" aria-pressed="${d.repeat&&ds.includes(i)}">${WD[i]}</button>`).join('')}</div>
+        <div class="wdays" role="group" aria-label="Дни недели">${WEEK_ORDER.map(i=>`<button class="wd" type="button" data-ed="repday" data-v="${i}" aria-pressed="${d.repeat&&!d.shift&&ds.includes(i)}">${WD[i]}</button>`).join('')}</div>
+        ${S.shift?`<p class="gmeta" style="margin:6px 2px 0">По графику ${S.shift.on}/${S.shift.off} · <button class="link" type="button" data-ed="shiftedit">изменить</button></p>
+        <button class="po" type="button" data-ed="shiftset" data-v="work" aria-pressed="${d.shift==='work'}"><span>В рабочие дни</span></button>
+        <button class="po" type="button" data-ed="shiftset" data-v="off" aria-pressed="${d.shift==='off'}"><span>В выходные по графику</span></button>`
+        :'<button class="po" type="button" data-ed="shiftedit"><span>По графику смен…</span></button>'}
         ${d.repeat?'<button class="po dangerous" type="button" data-ed="clear" data-v="repeat"><span>Не повторять</span></button>':''}</div>`;
+    }else if(P==='shift'){
+      const sd=E.shiftDraft||(E.shiftDraft=S.shift?{...S.shift}:{on:2,off:2,start:dayKey(t)});
+      const step=(k,lab)=>`<div class="shrow"><span>${lab}</span><button class="secondary" type="button" data-ed="shstep" data-v="${k},-1" aria-label="Меньше">−</button><b>${sd[k]}</b><button class="secondary" type="button" data-ed="shstep" data-v="${k},1" aria-label="Больше">+</button></div>`;
+      pop=`<div class="pop${popNew?' fresh':''}"><h3>Мой график</h3>${step('on','Работаю, дней')}${step('off','Отдыхаю, дней')}
+        <label class="shrow"><span>Первый рабочий день</span><input type="date" id="shStart" value="${sd.start}"></label>
+        <button class="primary" type="button" data-ed="shiftsave">Сохранить</button></div>`;
     }else if(P==='goal'){
       pop=`<div class="pop${popNew?' fresh':''}"><h3>Цель</h3>${activeGoals().map(g=>`<button class="po" type="button" data-ed="goalset" data-v="${g.id}" aria-pressed="${d.goal===g.id}"><span>${esc(g.title)}</span></button>`).join('')}
         ${d.goal?'<button class="po dangerous" type="button" data-ed="goalset" data-v=""><span>Не в цели</span></button>':''}</div>`;
@@ -900,12 +911,16 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(a==='delete'){S.tasks=S.tasks.filter(y=>y.id!==E.id);return closeEditor()}
     if(a==='open'){if(v==='plan'){d.planned=null}else if(v==='repeat'){E.pop='rep'}else E.pop=E.pop===v?null:v}
     else if(a.startsWith('open-')){const k=a.slice(5);if(k==='steps'){E.steps=true;E.focusStep=true;E.pop=null}else E.pop=E.pop===k?null:k}
-    else if(a==='clear'){if(v==='due')d.due=null;else if(v==='rem'){d.reminder=null;d.reminded=false}else if(v==='repeat'){d.repeat=false;delete d.days}else if(v==='plan')d.planned=null;E.pop=null}
+    else if(a==='clear'){if(v==='due')d.due=null;else if(v==='rem'){d.reminder=null;d.reminded=false}else if(v==='repeat'){d.repeat=false;delete d.days;delete d.shift}else if(v==='plan')d.planned=null;E.pop=null}
     else if(a==='plan'){d.planned=d.planned===planDay()?null:planDay()}
     else if(a==='dueset'){d.due=v;E.pop=null}
     else if(a==='repeat'){d.repeat=!d.repeat;if(d.repeat)E.pop=null}
-    else if(a==='repset'){d.repeat=true;if(v==='all')delete d.days;else d.days=v.split(',').map(Number);E.pop=null}
-    else if(a==='repday'){const i=+v;let ds=d.repeat?(d.days&&d.days.length?[...d.days]:[0,1,2,3,4,5,6]):[];ds=ds.includes(i)?ds.filter(y=>y!==i):ds.concat(i);
+    else if(a==='shiftedit'){E.shiftDraft=null;E.pop='shift'}
+    else if(a==='shstep'){const [k,s]=v.split(',');E.shiftDraft[k]=Math.min(14,Math.max(1,E.shiftDraft[k]+(+s)))}
+    else if(a==='shiftsave'){const i=$('shStart');if(i&&i.value)E.shiftDraft.start=i.value;S.shift={...E.shiftDraft};E.shiftDraft=null;E.pop='rep'}
+    else if(a==='shiftset'){d.repeat=true;d.shift=v;delete d.days;E.pop=null}
+    else if(a==='repset'){d.repeat=true;delete d.shift;if(v==='all')delete d.days;else d.days=v.split(',').map(Number);E.pop=null}
+    else if(a==='repday'){delete d.shift;const i=+v;let ds=d.repeat?(d.days&&d.days.length?[...d.days]:[0,1,2,3,4,5,6]):[];ds=ds.includes(i)?ds.filter(y=>y!==i):ds.concat(i);
       if(!ds.length){d.repeat=false;delete d.days}else{d.repeat=true;if(ds.length===7)delete d.days;else d.days=ds}}
     else if(a==='remset'){d.reminder=Number(v);d.reminded=false;E.pop=null}
     else if(a==='list'){d.list=v;E.pop=null}
@@ -1150,14 +1165,14 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     {t:'#scene',text:()=>(S.owlName?`${S.owlName}… Мне нравится! `:'Хорошо, я просто Сова. ')+'По мне сразу видно, как идут дела. Нажми на меня — увидишь настроение и сытость, там же можно покормить. Нажмёшь на мои слова — поговорим.'},
     {t:'.hud',text:()=>'Наверху твои листья. Я дарю их за сделанные дела, а в лавке на них покупается еда: к вечеру я проголодаюсь. А фонарик рядом — мой ночник. Он горит, когда за день сделано хоть одно дело, а остальные перенесены. Без него мне темно, так что иногда я буду просить о помощи!'},
     {t:'.today',text:()=>'Здесь дела на сегодня, и только они. Сделала — отметь кружком или смахни вправо. Не успеваешь — смахни влево, перенесу на завтра.'},
+    {t:'#diaryThing',text:()=>'Слева на полке — дневник. Вечером я спрошу, что было важного за день, а здесь всё сохранится.'},
     {t:'#mailThing',text:()=>'На почту я кладу письма: утром мы собираем день, вечером подводим итог и выбираем дела на завтра. Там же «Входящие»: всё, что пришло в голову.'},
     {t:'.dk[data-view="calendar"]',text:()=>'В календаре все дела по срокам. Плюсиком оттуда выбираешь, что делать сегодня. Число на календаре — сколько дел уже просрочено.'},
     {t:'.dk[data-view="lists"]',text:()=>S.lists.length?'В списках дела по темам: дом, работа, учёба. Я уже разложила туда примеры.':'Здесь будут твои списки. Давай заведём первые: выбери подходящие или напиши свои.',ui:()=>S.lists.length?'next':'lists'},
-    {t:'#goalsThing',text:()=>'А это цели: открытка с падающей звездой ведёт к окну, где они растут. Число на ней — сколько ростков подвяло.'},
     {t:'.dk-plus',round:true,text:()=>'Кнопка «+» — чтобы быстро записать дело или мысль.'},
     {t:'.room-wrap',pane:1,text:()=>'Смахни комнату в сторону — там окно. Цель — это несколько дел к одному сроку: нажми «+» и выбери «Цель». Семечко для неё продаёт Марс в лавке, и цель вырастет на подоконнике. Делай её дела — и росток растёт. Отстанешь от срока — подвянет, сделаешь все — загорится звезда.'},
     {t:'.room-wrap',pane:2,text:()=>'А с другой стороны комнаты — лавка. В ней торгует мой друг, кот Марс. У него еда для меня, семена для целей и вещи для комнаты. Всё покупается за листья.'},
-    {t:null,text:()=>'И последнее. Если дела стоят, я грущу, а на второй вечер подряд могу заболеть — поможет только лекарство. Без еды я злюсь. Держи двенадцать листьев: хватит на мышку, а после утреннего разговора — и на семечко для первой цели.',ui:'final'}
+    {t:null,text:()=>'И последнее. Если дела стоят, я грущу, а на второй вечер подряд могу заболеть — поможет только лекарство. Когда хочу есть, думаю о мышке. Держи двенадцать листьев: хватит на мышку, а после утреннего разговора — и на семечко для первой цели.',ui:'final'}
   ];
   function startTour(){
     if(T)closeTalk(false);if(E)closeEditor();
@@ -1477,7 +1492,11 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   // nothing done and a hard evening: no questions, undone tasks wait for the week review
   function Vsoft(){say(pick(['Ничего. Сегодня просто такой день. Дела не убегут, утром я про них напомню.','Отдыхай. Дела подождут, утром посмотрим, что взять.']));T.adj=-1;T.ev.soft=true;later(V6,800)}
   function eveLimit(){const e=T.ev;let n=3;if(BAD.includes(e.mood)||(e.total>0&&e.done===0)||(S.lightUntil&&now()<S.lightUntil))n=2;return Math.max(1,n+(T.adj||0))}
-  function V6(){
+  // v46 (Ilya): before tomorrow — a line for the diary, optional, asked once per talk
+  function V6(){if(T.diaryAsked)return V6t();T.diaryAsked=true;
+    say(pick(['Что важного было сегодня? Пара слов — для дневника.','Запишем в дневник, что сегодня было важного?']));
+    textInput('Что было важного',v=>{if(v){diaryAdd(v);say(pick(['Записала в дневник.','Сохранила. Дневник на полке слева.']))}later(V6t,v?600:200)},'Сегодня без записи')}
+  function V6t(){
     const tom=tomKey(),lim=eveLimit(),have=()=>S.tasks.filter(x=>x.planned===tom&&!x.repeat);
     const ask=()=>{const h=have(),left=lim-h.length;
       const items=S.tasks.filter(x=>!x.done&&!x.repeat&&x.planned!==tom).sort((a,b)=>(a.list==='inbox')-(b.list==='inbox')||(a.due||'9').localeCompare(b.due||'9'))
@@ -1676,6 +1695,31 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(marsAway){setTimeout(()=>{marsBack();marsSay=pick(MARS.back);$('owlName').textContent='Марс';$('marsSay').textContent=marsSay},380)}
     else{marsSay=pick(MARS.bell);$('marsSay').textContent=marsSay;marsPurr()}
   }
+
+  /* ---------- the diary (v46, Ilya): what mattered in her days ----------
+     S.diary = [{id, day, text, at}]. The evening talk asks for a line (Vdiary in 15-talk-evening.js); this page keeps them all,
+     newest first, and lets her add or fix a note. The diary is hers alone: nothing here is scored, no leaves, no reminders. */
+  let diaryEdit=null;
+  const WDAY=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  const diaryDay=k=>{const d=new Date(keyToTime(k));return `${WDAY[d.getDay()]}, ${d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}${d.getFullYear()!==new Date(now()).getFullYear()?' '+d.getFullYear():''}`};
+  function diaryAdd(text,day){S.diary=S.diary||[];S.diary.push({id:uid(),day:day||today(),text,at:now()});save()}
+  function renderDiary(){
+    const es=(S.diary||[]).slice().sort((a,b)=>b.day.localeCompare(a.day)||b.at-a.at);
+    if(!es.length){$('diaryList').innerHTML='<div class="empty">Пока пусто. Вечером я спрошу, что было важного за день, — и запись появится здесь.</div>';return}
+    const days=[];es.forEach(e=>{const g=days.find(d=>d.day===e.day);g?g.items.push(e):days.push({day:e.day,items:[e]})});
+    $('diaryList').innerHTML=days.map(d=>`<section class="dday"><h3>${diaryDay(d.day)}</h3><ul class="lgroup">${d.items.map(e=>diaryEdit===e.id
+      ?`<li class="dedit"><textarea id="diaryEditIn" rows="3" aria-label="Запись">${esc(e.text)}</textarea><div class="actions"><button class="primary" type="button" data-act="diarySave">Сохранить</button><button class="secondary" type="button" data-act="diaryCancel">Отмена</button><button class="link danger" type="button" data-act="diaryDel">Удалить</button></div></li>`
+      :`<li><button class="dentry" type="button" data-act="diaryEdit" data-id="${e.id}">${esc(e.text)}</button></li>`).join('')}</ul></section>`).join('');
+    if(diaryEdit){const i=$('diaryEditIn');if(i)setTimeout(()=>i.focus(),30)}
+  }
+  $('diaryForm').addEventListener('submit',e=>{e.preventDefault();const v=$('diaryIn').value.trim();if(!v)return;diaryAdd(v);$('diaryIn').value='';renderDiary()});
+  $('v-diary').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+    if(!a.startsWith('diary'))return;e.stopPropagation();
+    if(a==='diaryEdit')diaryEdit=b.dataset.id;
+    else if(a==='diaryCancel')diaryEdit=null;
+    else if(a==='diarySave'){const x=(S.diary||[]).find(y=>y.id===diaryEdit),v=$('diaryEditIn').value.trim();if(x&&v)x.text=v;else if(x&&!v)S.diary=S.diary.filter(y=>y!==x);diaryEdit=null;save()}
+    else if(a==='diaryDel'){S.diary=(S.diary||[]).filter(y=>y.id!==diaryEdit);diaryEdit=null;save()}
+    renderDiary()});
 
   /* ---------- Sofia's build only: backup copy and a gentle reminder. Uses the DEMO hooks, which are empty in her build ---------- */
   const BACKUP_EVERY=14*D;
