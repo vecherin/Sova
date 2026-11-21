@@ -745,7 +745,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
        :`<form class="inline" id="gAdd"><input id="gAddIn" placeholder="Новое дело для цели" aria-label="Новое дело цели" autocomplete="off"><button type="submit">Добавить</button></form>
       <div class="glinks">${pickable.length?'<button class="link" type="button" data-g="pickstart">+ Взять дела из списков</button>':''}${ts.some(x=>!x.done)?'<button class="link" type="button" data-g="dist">Разложить дела по спискам</button>':''}</div>`}
       ${sill}
-      ${st===4?'<button class="primary" type="button" data-g="harvest">Зажечь звезду</button>':'<button class="secondary" type="button" data-g="talk">Поговорить о цели</button>'}
+      ${st===4?'<button class="primary" type="button" data-g="harvest">Зажечь звезду</button>':'<button class="secondary" type="button" data-g="talk">Поговорить о цели</button><div class="glinks"><button class="link" type="button" data-g="coach">Разобрать подробнее</button><button class="link" type="button" data-g="paste">Вставить план</button></div>'}
       ${g.plant&&!goalUnpot?'<button class="link" type="button" data-g="unpotask" style="align-self:flex-start">Убрать с подоконника</button>':''}
       ${goalDel===g.id?`<div class="empty" style="text-align:left;align-items:flex-start">Удалить цель? Её дела останутся в списках.<div class="actions"><button class="secondary" type="button" data-g="del">Да, удалить</button><button class="secondary" type="button" data-g="keep">Оставить</button></div></div>`:'<button class="danger" type="button" data-g="askdel" style="align-self:flex-start">Удалить цель</button>'}
     </div>`;
@@ -777,6 +777,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='shop'){closeGoal();marsSay='Семечко для цели? Прошу, выбирайте, сударыня.';return go('shop')}
     else if(a==='harvest'){closeGoal();return openTalk('harvest',g)}
     else if(a==='talk'){closeGoal();return openTalk('goalcheck',g)}
+    else if(a==='coach'){return coachGo(g.id)}
+    else if(a==='paste'){closeGoal();planDraft=null;return openPlanSheet()}
     else if(a==='askdel')goalDel=g.id;else if(a==='keep')goalDel=null;
     else if(a==='del'){dropGoal(g);closeGoal();sayOverride='Убрала цель. Её дела остались в списках.';save();return render()}
     save();openGoal(g.id);render();
@@ -1014,6 +1016,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='cancelDel'){confirmDel=null}
     else if(a==='delList'){const lid=b.dataset.list;S.tasks.forEach(x=>{if(x.list===lid)x.list='inbox'});S.lists=S.lists.filter(l=>l.id!==lid);confirmDel=null;view='lists'}
     else if(a==='newGoal'){startPlant();return}
+    else if(a==='coach'){coachGo();return}
+    else if(a==='pastePlan'){planDraft=null;openPlanSheet();return}
     else if(a==='goals'){if(view!=='home'){go('home');showPane(1)}else showPane(1,true);window.scrollTo({top:0,behavior:'auto'});return}
     else if(a==='homeOwl'){if(view!=='home')go('home');else{window.scrollTo({top:0,behavior:calm()?'auto':'smooth'});showPane(0,true)}return}
     else if(a==='sky'){sayOverride=S.goals.some(g=>g.doneAt)?'Звёзды в небе — твои достигнутые цели.':'Здесь будут загораться звёзды — твои достигнутые цели.'}
@@ -1720,6 +1724,120 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='diarySave'){const x=(S.diary||[]).find(y=>y.id===diaryEdit),v=$('diaryEditIn').value.trim();if(x&&v)x.text=v;else if(x&&!v)S.diary=S.diary.filter(y=>y!==x);diaryEdit=null;save()}
     else if(a==='diaryDel'){S.diary=(S.diary||[]).filter(y=>y.id!==diaryEdit);diaryEdit=null;save()}
     renderDiary()});
+
+  /* ---------- the owl-coach (v47): a two-way bridge to ChatGPT for goals ----------
+     «Разобрать подробнее» copies an opening message — how to talk (the owl's voice, a coach's questions, one at a time)
+     plus Sofia's world: goals, open and recent tasks, wins, energy, the diary — and opens chatgpt.com.
+     The coach ends with a fixed block «ПЛАН ДЛЯ СОВЫ … КОНЕЦ»; «Вставить план» reads it back, shows a preview and adds
+     a goal with its tasks, or new tasks and a new deadline to the goal with the same title. Nothing leaves the phone by itself:
+     only what Sofia pastes. The interface never names ChatGPT or AI (principle 5). */
+  const COACH_URL='https://chatgpt.com/';
+  const kd=k=>new Date(keyToTime(k)).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  function coachText(goalId){
+    const t=now(),since=t-30*D,g0=goalId&&S.goals.find(g=>g.id===goalId),ln=id=>id==='inbox'?'Входящие':id==='goals'?'Цели':listName(id);
+    const goals=S.goals.filter(g=>!g.doneAt).map(g=>{const ts=goalTasks(g),d=ts.filter(x=>x.done).length;
+      return `• «${g.title}» — срок ${g.due?kd(g.due):'не задан'}, сделано ${d} из ${ts.length}${g.why?`. Зачем: ${g.why}`:''}${g.doneWhen?`. Как пойму: ${g.doneWhen}`:''}\n${ts.map(x=>`   ${x.done?'✓':'○'} ${x.title}${x.due&&!x.done?` (срок ${kd(x.due)})`:''}`).join('\n')}`}).join('\n')||'пока нет';
+    const reached=S.goals.filter(g=>g.doneAt).map(g=>`«${g.title}»`).join(', ');
+    const open=S.tasks.filter(x=>!x.done&&!x.goal).slice(0,60).map(x=>`• ${x.title} [${ln(x.list)}${x.due?`, срок ${kd(x.due)}`:''}${x.repeat?', повторяется: '+repeatLabel(x):''}]`).join('\n')||'нет';
+    const done=S.tasks.filter(x=>x.done&&!x.repeat&&x.doneAt&&x.doneAt>=since).sort((a,b)=>b.doneAt-a.doneAt).slice(0,40).map(x=>`• ${x.title}`).join('\n')||'нет';
+    const wins=(S.wins||[]).filter(w=>keyToTime(w.day)>=since).map(w=>`• ${w.title}`).join('\n')||'нет';
+    const en=Object.entries(S.energy||{}).filter(([k])=>keyToTime(k)>=since),low=en.filter(([,e])=>e==='low').length;
+    const diary=(S.diary||[]).filter(e=>keyToTime(e.day)>=since).sort((a,b)=>a.day.localeCompare(b.day)).map(e=>`• ${kd(e.day)}: ${e.text}`).join('\n')||'записей нет';
+    const name=S.owlName||'Сова';
+    return `Привет! Будь моим коучем по целям. Говори со мной как ${name} — моя сова из приложения-планировщика.
+
+Как говорить:
+— на «ты», в женском роде (ты — сова), тепло, коротко, бережно; без давления, стыда и обесценивания. Мне важно реализоваться, и я из-за этого переживаю;
+— задавай по одному вопросу за раз и жди ответа. Не выдавай готовый план сразу: мне нужен разговор, а не список;
+— веди как коуч: к чему я хочу прийти и зачем мне это; как я пойму, что пришла; насколько это реально сейчас и что может помешать; какие шаги; к какому сроку и в каком темпе. Помогай мне самой найти ответы, предлагай варианты, когда я застряла;
+— шаги — настоящие дела, от 3 до 8, первое маленькое, чтобы начать было легко. Учитывай мои силы и другие дела;
+— можно немного совиного: «ух-ху», крылья, гнездо, — но в меру.
+
+${g0?`Давай разберём цель «${g0.title}».`:'Спроси, какую цель разберём: новую или одну из тех, что уже есть.'}
+
+Когда мы договоримся, напиши итог в таком виде, без звёздочек и другой разметки (для цели, которая уже есть, — её название слово в слово, а в «Дела» только новые дела):
+
+ПЛАН ДЛЯ СОВЫ
+Цель: название цели
+Зачем: одной фразой
+Как пойму: одной фразой
+Срок: ГГГГ-ММ-ДД
+Дела:
+- первое дело
+- второе дело
+КОНЕЦ
+
+И скажи мне скопировать этот блок и нажать в сове «Вставить план».
+
+Вот что сейчас в моей сове (сегодня ${kd(today())}).
+
+Цели:
+${goals}${reached?`\nУже достигнуто: ${reached}`:''}
+
+Другие дела, которые ждут:
+${open}
+
+Сделано за последний месяц:
+${done}
+
+Копилка побед:
+${wins}
+
+Силы: за месяц я отмечала их ${cnt(en.length,'раз','раза','раз')}, из них мало сил — ${low}.
+
+Мой дневник за месяц:
+${diary}`;
+  }
+  async function coachGo(goalId){
+    const txt=coachText(goalId);let ok=false;
+    try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
+    if(!ok){openPlanSheet('copy',txt);return}
+    peekSay('Скопировала наш разговор. Вставь его в чат и ответь мне там.','',[['Открыть чат',()=>window.open(COACH_URL,'_blank'),true],['Потом']]);
+  }
+  // reading the plan back
+  function parsePlan(s){
+    s=String(s||'').replace(/\r/g,'').replace(/[*_`#]/g,'');
+    const a=s.search(/ПЛАН ДЛЯ СОВЫ/i),b=s.search(/^\s*КОНЕЦ\s*$/im);const body=a>=0?s.slice(a,b>a?b:undefined):s;
+    const field=n=>{const m=body.match(new RegExp('^\\s*'+n+'\\s*[:—-]\\s*(.+)$','im'));return m?m[1].trim():null};
+    let due=field('Срок');const m=due&&due.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);due=m?`${m[1]}-${pad(+m[2])}-${pad(+m[3])}`:null;
+    const di=body.search(/^\s*Дела\s*:/im);const tasks=di<0?[]:body.slice(di).split('\n').slice(1).map(l=>l.match(/^\s*(?:[-•–—]|\d+[.)])\s*(.+)$/)).filter(Boolean).map(x=>x[1].trim()).filter(Boolean).slice(0,12);
+    const title=field('Цель');
+    return title&&tasks.length?{title,why:field('Зачем'),doneWhen:field('Как пойму'),due,tasks}:null;
+  }
+  let planDraft=null;
+  function openPlanSheet(mode,txt){
+    const el=$('planSheet'),same=planDraft&&S.goals.find(g=>!g.doneAt&&g.title.trim().toLowerCase()===planDraft.title.trim().toLowerCase());
+    let body;
+    if(mode==='copy')body=`<h3>Скопируй текст</h3><p class="gmeta">Выдели всё и скопируй, потом вставь в чат.</p><textarea readonly rows="10" id="planCopy">${esc(txt)}</textarea>
+      <a class="primary" href="${COACH_URL}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Открыть чат</a>`;
+    else if(!planDraft)body=`<h3>Вставить план</h3><p class="gmeta">Скопируй в чате блок «ПЛАН ДЛЯ СОВЫ» целиком и вставь сюда.</p>
+      <textarea rows="8" id="planIn" placeholder="ПЛАН ДЛЯ СОВЫ…" aria-label="План"></textarea><p class="gmeta" id="planErr" hidden>Не нашла в тексте цель и дела. Скопируй блок целиком — от «ПЛАН ДЛЯ СОВЫ» до «КОНЕЦ».</p>
+      <button class="primary" type="button" data-p="read">Посмотреть план</button>`;
+    else body=`<h3>${same?'Дополнить цель':'Новая цель'}</h3><p class="goal-title"><b>${esc(planDraft.title)}</b></p>
+      ${planDraft.why?`<p class="gmeta"><b>Зачем:</b> ${esc(planDraft.why)}</p>`:''}${planDraft.doneWhen?`<p class="gmeta"><b>Как пойму:</b> ${esc(planDraft.doneWhen)}</p>`:''}
+      <p class="gmeta"><b>Срок:</b> ${planDraft.due?fmtDay(planDraft.due):same&&same.due?fmtDay(same.due)+' (как был)':'через три месяца'}</p>
+      <ul class="lgroup">${planDraft.tasks.map(x=>`<li class="gstep"><span class="gtitle"><span>${esc(x)}</span></span></li>`).join('')}</ul>
+      <div class="actions"><button class="primary" type="button" data-p="add">${same?'Добавить дела в цель':'Добавить цель'}</button><button class="secondary" type="button" data-p="again">Вставить другой</button></div>`;
+    el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="План"><div class="ed-top"><span></span><span class="grab"></span><button class="primary ed-save" type="button" data-p="close">Готово</button></div>${body}</div>`;
+    sheetShow(el);document.body.style.overflow='hidden';
+    if(mode!=='copy'&&!planDraft&&navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(v=>{const i=$('planIn');if(i&&!i.value&&/ПЛАН ДЛЯ СОВЫ/i.test(v||''))i.value=v}).catch(()=>{});
+  }
+  function closePlanSheet(){sheetHide($('planSheet'));document.body.style.overflow='';planDraft=null}
+  $('planSheet').addEventListener('click',e=>{
+    if(e.target===$('planSheet'))return closePlanSheet();
+    const b=e.target.closest('[data-p]');if(!b)return;const a=b.dataset.p;
+    if(a==='close')return closePlanSheet();
+    if(a==='read'){const p=parsePlan($('planIn').value);if(!p){$('planErr').hidden=false;return}planDraft=p;return openPlanSheet()}
+    if(a==='again'){planDraft=null;return openPlanSheet()}
+    if(a==='add'){const p=planDraft,same=S.goals.find(g=>!g.doneAt&&g.title.trim().toLowerCase()===p.title.trim().toLowerCase());
+      let g=same;if(!g){g={id:uid(),title:p.title,why:p.why||null,doneWhen:p.doneWhen||null,due:p.due||dayKey(now()+91*D),created:now(),doneAt:null,plant:null};S.goals.push(g)}
+      else{if(p.due)g.due=p.due;if(p.why&&!g.why)g.why=p.why;if(p.doneWhen&&!g.doneWhen)g.doneWhen=p.doneWhen}
+      const have=goalTasks(g).map(x=>x.title.trim().toLowerCase());let n=0;
+      p.tasks.forEach(tt=>{if(have.includes(tt.trim().toLowerCase()))return;S.tasks.push({id:uid(),title:tt,list:'goals',due:null,reminder:null,reminded:false,repeat:false,steps:[],planned:null,done:false,doneAt:null,created:now(),goal:g.id});n++});
+      closePlanSheet();save();
+      sayOverride=same?`Добавила в «${short(g.title,24)}» ${cnt(n,'дело','дела','дел')}.`:`Цель «${short(g.title,24)}» есть: ${cnt(n,'дело','дела','дел')}. ${canPlant(g)?'Посадим её на подоконник?':'Семечко для неё — у Марса.'}`;
+      view='home';render();showPane(1,true);setTimeout(()=>openGoal(g.id),350);return}
+  });
 
   /* ---------- Sofia's build only: backup copy and a gentle reminder. Uses the DEMO hooks, which are empty in her build ---------- */
   const BACKUP_EVERY=14*D;

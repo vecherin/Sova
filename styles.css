@@ -841,6 +841,10 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 .shrow b{min-width:22px;text-align:center;font-size:18px}
 .shrow .secondary{width:40px;height:40px;padding:0;font-size:20px}
 .shrow input{flex:0 0 auto}
+/* v47: pasting a plan from the owl-coach */
+#planSheet textarea{width:100%;box-sizing:border-box;font:inherit;font-weight:600;font-size:15px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
+#planSheet h3{margin:0;font-family:Lora,Georgia,serif;font-size:20px}
+#planSheet .goal-title{margin:0;font-size:18px}
 
 /* Conversations with the owl */
 .inline{display:flex;gap:8px}
