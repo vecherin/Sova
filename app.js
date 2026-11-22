@@ -118,6 +118,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       else if(t-S.lastFed>3*D)S.gone='hungry';
       if(S.gone)return;
     }
+    // v50 (Ilya): a task due today moves into today by itself in the morning, and the owl says so (once a day, from 6:00)
+    if(hourOf(t)>=6&&S.onboarded&&S.dueMoved!==tk){S.dueMoved=tk;
+      const xs=S.tasks.filter(x=>!x.done&&!x.repeat&&x.due===tk&&x.planned!==tk);xs.forEach(x=>{x.planned=tk});
+      if(xs.length)sayOverride=xs.length===1?`Перенесла в сегодня «${short(xs[0].title,26)}»: срок сегодня.`:`Перенесла в сегодня ${cnt(xs.length,'дело','дела','дел')} со сроком сегодня.`}
     // the owl's morning letter: 6:00–18:00 only. Later in the day choosing tasks makes no sense — the evening letter (20:00) plans tomorrow;
     // an unread morning letter is retired at 18:00, so the first evening never brings two letters (Ilya, 18.11)
     if(hourOf(t)>=6&&hourOf(t)<MORNING_END&&!S.letters.some(l=>l.kind==='morning'&&l.day===tk)){S.letters.push({id:uid(),kind:'morning',day:tk,read:false});0}
@@ -1017,6 +1021,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='delList'){const lid=b.dataset.list;S.tasks.forEach(x=>{if(x.list===lid)x.list='inbox'});S.lists=S.lists.filter(l=>l.id!==lid);confirmDel=null;view='lists'}
     else if(a==='newGoal'){startPlant();return}
     else if(a==='coach'){coachGo();return}
+    else if(a==='coachCall'){coachCall();return}
     else if(a==='pastePlan'){planDraft=null;openPlanSheet();return}
     else if(a==='goals'){if(view!=='home'){go('home');showPane(1)}else showPane(1,true);window.scrollTo({top:0,behavior:'auto'});return}
     else if(a==='homeOwl'){if(view!=='home')go('home');else{window.scrollTo({top:0,behavior:calm()?'auto':'smooth'});showPane(0,true)}return}
@@ -1733,32 +1738,24 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
      only what Sofia pastes. The interface never names ChatGPT or AI (principle 5). */
   const COACH_URL='https://chatgpt.com/';
   const kd=k=>new Date(keyToTime(k)).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
-  function coachText(goalId){
-    const t=now(),since=t-30*D,g0=goalId&&S.goals.find(g=>g.id===goalId),ln=id=>id==='inbox'?'Входящие':id==='goals'?'Цели':listName(id);
-    const goals=S.goals.filter(g=>!g.doneAt).map(g=>{const ts=goalTasks(g),d=ts.filter(x=>x.done).length;
-      return `• «${g.title}» — срок ${g.due?kd(g.due):'не задан'}, сделано ${d} из ${ts.length}${g.why?`. Зачем: ${g.why}`:''}${g.doneWhen?`. Как пойму: ${g.doneWhen}`:''}\n${ts.map(x=>`   ${x.done?'✓':'○'} ${x.title}${x.due&&!x.done?` (срок ${kd(x.due)})`:''}`).join('\n')}`}).join('\n')||'пока нет';
-    const reached=S.goals.filter(g=>g.doneAt).map(g=>`«${g.title}»`).join(', ');
-    const open=S.tasks.filter(x=>!x.done&&!x.goal).slice(0,60).map(x=>`• ${x.title} [${ln(x.list)}${x.due?`, срок ${kd(x.due)}`:''}${x.repeat?', повторяется: '+repeatLabel(x):''}]`).join('\n')||'нет';
-    const done=S.tasks.filter(x=>x.done&&!x.repeat&&x.doneAt&&x.doneAt>=since).sort((a,b)=>b.doneAt-a.doneAt).slice(0,40).map(x=>`• ${x.title}`).join('\n')||'нет';
-    const wins=(S.wins||[]).filter(w=>keyToTime(w.day)>=since).map(w=>`• ${w.title}`).join('\n')||'нет';
-    const en=Object.entries(S.energy||{}).filter(([k])=>keyToTime(k)>=since),low=en.filter(([,e])=>e==='low').length;
-    const diary=(S.diary||[]).filter(e=>keyToTime(e.day)>=since).sort((a,b)=>a.day.localeCompare(b.day)).map(e=>`• ${kd(e.day)}: ${e.text}`).join('\n')||'записей нет';
-    const name=S.owlName||'Сова';
-    // the first line names the chat: ChatGPT titles a chat from its opening, the owl emoji helps find it in the list (Ilya)
-    return `🦉 Разговор с совой о ${g0?`цели «${g0.title}»`:'целях'}
+  // v50 (Sofia): one chat for all goals. «Позвать сову-коуча» copies the setup — how to talk, how to read the owl's messages,
+  // the plan format; she pastes it once into a new chat and pins it. «Разобрать подробнее» then copies a short message for that
+  // chat: the goal, its tasks and progress, a summary of her load (not every task) and the diary of the last weeks.
+  function coachSetup(){const name=S.owlName||'Сова';
+    return `🦉 Сова-коуч
 
-Привет! Будь моим коучем по целям. Говори со мной как ${name} — моя сова из приложения-планировщика.
+Привет! Это постоянный чат, где мы с тобой будем разбирать мои цели. Будь моим коучем и говори со мной как ${name} — моя сова из приложения-планировщика.
 
 Как говорить:
 — на «ты», в женском роде (ты — сова), тепло, коротко, бережно; без давления, стыда и обесценивания. Мне важно реализоваться, и я из-за этого переживаю;
 — задавай по одному вопросу за раз и жди ответа. Не выдавай готовый план сразу: мне нужен разговор, а не список;
 — веди как коуч: к чему я хочу прийти и зачем мне это; как я пойму, что пришла; насколько это реально сейчас и что может помешать; какие шаги; к какому сроку и в каком темпе. Помогай мне самой найти ответы, предлагай варианты, когда я застряла;
-— шаги — настоящие дела, от 3 до 8, первое маленькое, чтобы начать было легко. Учитывай мои силы и другие дела;
+— шаги — настоящие дела, от 3 до 8, первое маленькое, чтобы начать было легко;
 — можно немного совиного: «ух-ху», крылья, гнездо, — но в меру.
 
-${g0?`Давай разберём цель «${g0.title}».`:'Спроси, какую цель разберём: новую или одну из тех, что уже есть.'}
+Иногда я буду присылать сообщения, которые начинаются с «🦉 Из совы» — это данные из приложения: какую цель разбираем, её дела и срок, сколько у меня сейчас других дел и сколько я обычно успеваю, мой дневник. Не пересказывай их мне. Используй, чтобы понять, где я сейчас, и чтобы план был посильным: если дел и так много, предлагай меньше шагов или срок подальше. Дневник — чтобы лучше меня понимать; бережно, без оценок.
 
-Когда мы договоримся, напиши итог в таком виде, без звёздочек и другой разметки (для цели, которая уже есть, — её название слово в слово, а в «Дела» только новые дела):
+Когда мы договоримся о цели, напиши итог в таком виде, без звёздочек и другой разметки (для цели, которая уже есть, — её название слово в слово, а в «Дела» только новые дела):
 
 ПЛАН ДЛЯ СОВЫ
 Цель: название цели
@@ -1770,36 +1767,34 @@ ${g0?`Давай разберём цель «${g0.title}».`:'Спроси, ка
 - второе дело
 КОНЕЦ
 
-И скажи мне скопировать этот блок и нажать в сове «Вставить план».
-
-Вот что сейчас в моей сове (сегодня ${kd(today())}).
-
-Цели:
-${goals}${reached?`\nУже достигнуто: ${reached}`:''}
-
-Другие дела, которые ждут:
-${open}
-
-Сделано за последний месяц:
-${done}
-
-Копилка побед:
-${wins}
-
-Силы: за месяц я отмечала их ${cnt(en.length,'раз','раза','раз')}, из них мало сил — ${low}.
-
-Мой дневник за месяц:
-${diary}`;
+И скажи мне скопировать этот блок и нажать в сове «Вставить план».`;
   }
-  // v49: copy and go to the chat at once, inside the same tap (iOS lets a tap open a page only right away, not after a wait).
-  // If copying fails, the text waits in a sheet when she comes back.
-  function coachGo(goalId){
-    const txt=coachText(goalId);let failed=false;
-    try{navigator.clipboard.writeText(txt).catch(()=>{failed=true;openPlanSheet('copy',txt)})}catch(e){failed=true}
+  function coachText(goalId){
+    const t=now(),g0=goalId&&S.goals.find(g=>g.id===goalId),live=S.goals.filter(g=>!g.doneAt);
+    const open=S.tasks.filter(x=>!x.done&&!x.repeat),soon=open.filter(x=>x.due&&dayDiff(x.due,t)<=14).length;
+    const done4=S.tasks.filter(x=>x.done&&!x.repeat&&x.doneAt&&x.doneAt>=t-28*D).length,perWeek=String(Math.round(done4/4*10)/10).replace('.',',');
+    const en=Object.entries(S.energy||{}).filter(([k])=>keyToTime(k)>=t-14*D),low=en.filter(([,e])=>e==='low').length;
+    const diary=(S.diary||[]).filter(e=>keyToTime(e.day)>=t-21*D).sort((a,b)=>a.day.localeCompare(b.day)).map(e=>`• ${kd(e.day)}: ${e.text}`).join('\n');
+    let goalPart;
+    if(g0){const ts=goalTasks(g0),d=ts.filter(x=>x.done).length;
+      goalPart=`Разберём цель «${g0.title}». Срок — ${g0.due?kd(g0.due):'не задан'}, сделано ${d} из ${ts.length}.${g0.why?`\nЗачем: ${g0.why}`:''}${g0.doneWhen?`\nКак пойму: ${g0.doneWhen}`:''}\nДела цели:\n${ts.map(x=>`${x.done?'✓':'○'} ${x.title}${x.due&&!x.done?` (срок ${kd(x.due)})`:''}`).join('\n')||'пока нет'}`}
+    else goalPart=`Хочу поставить новую цель.${live.length?`\nЦели, что уже есть: ${live.map(g=>`«${g.title}»`).join(', ')}.`:''}`;
+    return `🦉 Из совы · ${kd(today())}
+
+${goalPart}
+
+Моя нагрузка — чтобы план был посильным: открытых дел ${open.length}, из них со сроком в ближайшие две недели — ${soon}. Обычно я делаю ${perWeek} дела в неделю.${en.length?` За две недели мало сил было ${cnt(low,'день','дня','дней')} из ${en.length} отмеченных.`:''}${diary?`\n\nМой дневник за последние недели:\n${diary}`:''}`;
+  }
+  function coachCopy(txt,hint){let failed=false;
+    try{navigator.clipboard.writeText(txt).catch(()=>openPlanSheet('copy',txt))}catch(e){failed=true}
     if(failed)return openPlanSheet('copy',txt);
-    peekSay('Скопировала. В чате вставь текст и отправь — я отвечу.');
-    window.open(COACH_URL,'_blank');
+    peekSay(hint);window.open(COACH_URL,'_blank')}
+  // the first time — the setup and the goal together, so it works in one go; later only the short message
+  function coachGo(goalId){
+    if(!S.coachSet){S.coachSet=true;save();return coachCopy(coachSetup()+'\n\n'+coachText(goalId),'Скопировала. Вставь в новый чат и отправь. Этот чат — ваш с совой: закрепи его.')}
+    coachCopy(coachText(goalId),'Скопировала. Открой закреплённый чат «🦉 Сова-коуч» и вставь.');
   }
+  function coachCall(){S.coachSet=true;save();coachCopy(coachSetup()+'\n\nСейчас просто поздоровайся и спроси, с какой цели начнём.','Скопировала. Вставь в новый чат и закрепи его — это будет чат с совой-коучем.')}
   // reading the plan back
   function parsePlan(s){
     s=String(s||'').replace(/\r/g,'').replace(/[*_`#]/g,'');
