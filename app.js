@@ -745,7 +745,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
        :`<form class="inline" id="gAdd"><input id="gAddIn" placeholder="Новое дело для цели" aria-label="Новое дело цели" autocomplete="off"><button type="submit">Добавить</button></form>
       <div class="glinks">${pickable.length?'<button class="link" type="button" data-g="pickstart">+ Взять дела из списков</button>':''}${ts.some(x=>!x.done)?'<button class="link" type="button" data-g="dist">Разложить дела по спискам</button>':''}</div>`}
       ${sill}
-      ${st===4?'<button class="primary" type="button" data-g="harvest">Зажечь звезду</button>':'<button class="secondary" type="button" data-g="talk">Поговорить о цели</button><div class="glinks"><button class="link" type="button" data-g="coach">Разобрать подробнее</button><button class="link" type="button" data-g="paste">Вставить план</button></div>'}
+      ${st===4?'<button class="primary" type="button" data-g="harvest">Зажечь звезду</button>':'<button class="secondary" type="button" data-g="talk">Поговорить о цели</button><div class="glinks"><button class="link" type="button" data-g="paste">Вставить план</button></div>'}
       ${g.plant&&!goalUnpot?'<button class="link" type="button" data-g="unpotask" style="align-self:flex-start">Убрать с подоконника</button>':''}
       ${goalDel===g.id?`<div class="empty" style="text-align:left;align-items:flex-start">Удалить цель? Её дела останутся в списках.<div class="actions"><button class="secondary" type="button" data-g="del">Да, удалить</button><button class="secondary" type="button" data-g="keep">Оставить</button></div></div>`:'<button class="danger" type="button" data-g="askdel" style="align-self:flex-start">Удалить цель</button>'}
     </div>`;
@@ -1363,7 +1363,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     say('Я запомнила. За окном зажглась звезда — она там навсегда.');finishBtn(`Посмотреть · +${lv(20+bonus)}`)}
   // Разговор о цели (К1–К3), раз в месяц или по желанию
   function K1(){const g=T.goal;say(`«${g.title}». Эта цель всё ещё твоя?`);
-    buttons([['Да, иду дальше',K2],['Хочу поменять дела или срок',()=>{closeTalk(false);showPane(1);openGoal(g.id)}],['Уже неважна',K3]])}
+    buttons([['Да, иду дальше',K2],['Разобрать подробнее',()=>{closeTalk(false);coachGo(g.id)}],['Уже неважна',K3]])} // v49: the deep talk in the chat replaces «поменять дела или срок» — the coach does exactly that
   function K2(){const g=T.goal,s=goalTasks(g).find(y=>!y.done&&y.planned!==planDay());
     if(!s){say(goalDone(g)?'Все дела сделаны — пора зажигать звезду! Нажми на горшок у окна.':'Все дела цели уже в плане. Так держать!');return finishBtnNo('Хорошо')}
     say(`Следующее дело — «${s.title}». Возьмём ${closed()?'на завтра':'на сегодня'}?`);
@@ -1791,11 +1791,14 @@ ${wins}
 Мой дневник за месяц:
 ${diary}`;
   }
-  async function coachGo(goalId){
-    const txt=coachText(goalId);let ok=false;
-    try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
-    if(!ok){openPlanSheet('copy',txt);return}
-    peekSay('Скопировала наш разговор. Вставь его в чат и ответь мне там.','',[['Открыть чат',()=>window.open(COACH_URL,'_blank'),true],['Потом']]);
+  // v49: copy and go to the chat at once, inside the same tap (iOS lets a tap open a page only right away, not after a wait).
+  // If copying fails, the text waits in a sheet when she comes back.
+  function coachGo(goalId){
+    const txt=coachText(goalId);let failed=false;
+    try{navigator.clipboard.writeText(txt).catch(()=>{failed=true;openPlanSheet('copy',txt)})}catch(e){failed=true}
+    if(failed)return openPlanSheet('copy',txt);
+    peekSay('Скопировала. В чате вставь текст и отправь — я отвечу.');
+    window.open(COACH_URL,'_blank');
   }
   // reading the plan back
   function parsePlan(s){
