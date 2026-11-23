@@ -127,8 +127,9 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(hourOf(t)>=6&&hourOf(t)<MORNING_END&&!S.letters.some(l=>l.kind==='morning'&&l.day===tk)){S.letters.push({id:uid(),kind:'morning',day:tk,read:false});0}
     if(hourOf(t)>=MORNING_END&&S.letters.some(l=>l.kind==='morning'&&!l.read))S.letters=S.letters.filter(l=>!(l.kind==='morning'&&!l.read));
     if(S.week.due<=t&&!S.letters.some(l=>l.kind==='week'&&!l.read)){S.letters.push({id:uid(),kind:'week',day:tk,read:false});0}
-    // the owl's evening letter: from 20:00, once a day; on a week-review evening the review takes its place; an unread morning letter is retired
-    if(hourOf(t)>=EVE&&!S.letters.some(l=>l.kind==='evening'&&l.day===tk)&&!letter('week')&&S.week.lastDay!==tk){
+    // the owl's evening letter: from 20:00, once a day; an unread morning letter is retired.
+    // v51: it comes on a week-review evening too — an unopened review used to hold back every evening letter (Sofia, 22.11)
+    if(hourOf(t)>=EVE&&!S.letters.some(l=>l.kind==='evening'&&l.day===tk)){
       S.letters=S.letters.filter(l=>!(l.kind==='morning'&&!l.read));S.letters.push({id:uid(),kind:'evening',day:tk,read:false})}
     // reminders
     S.tasks.forEach(x=>{if(x.reminder&&!x.reminded&&!x.done&&x.reminder<=t){x.reminded=true;pending.push(`Напоминание: «${x.title}»`)}});
@@ -174,7 +175,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const partial=!cl&&items.length>0&&done>0&&!allDone&&h>=20;
     const hz=S.hunger<=0?'red':S.hunger<=HUNGRY_YELLOW?'yellow':'green'; // the same edges as the fish on the tag
     let mood='ok';
-    if(S.sick)mood='sick';else if(hz==='red')mood='hungry';else if(level>=2)mood='sulky';else if(level===1)mood='sad';else if(cl)mood='sleep';else if(allDone||done>0)mood='happy';
+    if(S.sick)mood='sick';else if(hz==='red')mood='hungry';else if(cl||h<6)mood='sleep';else if(level>=2)mood='sulky';else if(level===1)mood='sad'; /* v51: at night she sleeps even when sad — only illness or real hunger keep her up */else if(allDone||done>0)mood='happy';
     return {t,h,hz,items,morningLate,weekLate,waitLvl,emptyLvl,failed,miss,partial,allDone,mood,idle:waitLvl>0};
   }
   const MOOD={ok:'спокойна',happy:'счастлива',sad:'грустит',hungry:'хочет есть',angry:'злится',sulky:'нахохлилась',sick:'болеет',sleep:'спит'};
@@ -354,7 +355,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     $('date').textContent=new Date(t).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
     if(DEMO.render)DEMO.render(t);
     renderWindow();
-    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=(st.h>=21||st.h<6)?'1':'0';sc.dataset.all=st.allDone&&!tourOn?'1':'0';
+    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=(st.h>=EVE||st.h<6)?'1':'0'; /* v51: the evening light comes with the evening letter, at 20:00 */sc.dataset.all=st.allDone&&!tourOn?'1':'0';
     if(!$('care').hidden)renderTags(mood);
     sc.dataset.scarf=S.scarf?'1':'0';sc.dataset.lights=S.lightsOff?'0':'1';sc.dataset.bed=S.decor&&S.decor.bed?'1':'0';sc.dataset.yarn=S.decor&&S.decor.yarn?'1':'0';sc.dataset.shelf=S.decor&&S.decor.shelf?'1':'0';sc.dataset.shelf2=S.decor&&S.decor.shelf2?'1':'0';renderShelf();
     // the lantern by the owl is the streak: lit today, waiting for today's first task, or out
@@ -1900,4 +1901,6 @@ ${goalPart}
   showPane(0); // the owl is the middle screen: without this the room would open on the shop
   if(!S.toured)setTimeout(startTour,700);
   setInterval(()=>{if(!T&&!E)render()},20e3);
+  // v51: back from the background — catch up at once (time moved on: evening, letters, sleep), not in up to 20 seconds
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(!T&&!E)render();else{tick();save()}}});
 })();
