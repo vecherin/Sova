@@ -71,6 +71,14 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   // repeating tasks: every day, or on chosen weekdays (x.days holds getDay() numbers, Sunday is 0)
   const WD=['вс','пн','вт','ср','чт','пт','сб'],WEEK_ORDER=[1,2,3,4,5,6,0];
   // v46: or by her shift schedule (2/2 and the like): S.shift={on,off,start}, x.shift='work'|'off' — one schedule for all tasks
+  // v52 (Ilya): the window follows the year. Winter Nov–Mar (sometimes snow), spring Apr–May, summer Jun–Aug, autumn Sep–Oct.
+  // It gets dark by the month — around Moscow and Riga: 16:00 in November, 22:00 in June; light again in the morning.
+  // The evening letter stays at 20:00 and the owl still sleeps 23–6: only the light in the room and the sky follow the season.
+  const SEASON=['winter','winter','winter','spring','spring','summer','summer','summer','autumn','autumn','winter','winter'];
+  const DUSK=[990,1050,1110,1200,1260,1320,1290,1230,1140,1050,960,945], DAWN=[540,480,420,360,300,240,270,330,390,450,510,540]; // minutes
+  const seasonOf=t=>SEASON[new Date(t).getMonth()];
+  const isDark=t=>{const d=new Date(t),m=d.getHours()*60+d.getMinutes(),i=d.getMonth();return m>=DUSK[i]||m<DAWN[i]};
+  const snowDay=t=>{if(seasonOf(t)!=='winter')return false;const k=dayKey(t);let h=7;for(const c of k)h=(h*31+c.charCodeAt(0))%997;return h%10<4};
   const shiftDay=k=>{const s=S.shift;if(!s)return null;const n=s.on+s.off,i=((Math.round((keyToTime(k)-keyToTime(s.start))/D)%n)+n)%n;return i<s.on?'work':'off'};
   const repeatsOn=(x,k)=>!!x.repeat&&(x.shift?shiftDay(k)===x.shift:(!x.days||!x.days.length||x.days.includes(new Date(keyToTime(k)).getDay())));
   function repeatLabel(x){if(x.shift)return x.shift==='work'?'рабочие дни по графику':'выходные по графику';const d=x.days&&x.days.length?[...x.days].sort((a,b)=>WEEK_ORDER.indexOf(a)-WEEK_ORDER.indexOf(b)):null;
@@ -355,7 +363,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     $('date').textContent=new Date(t).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
     if(DEMO.render)DEMO.render(t);
     renderWindow();
-    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=(st.h>=EVE||st.h<6)?'1':'0'; /* v51: the evening light comes with the evening letter, at 20:00 */sc.dataset.all=st.allDone&&!tourOn?'1':'0';
+    const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=isDark(t)?'1':'0';sc.dataset.season=seasonOf(t);sc.dataset.snow=snowDay(t)?'1':'0'; /* v52: dusk and weather follow the season */sc.dataset.all=st.allDone&&!tourOn?'1':'0';
     if(!$('care').hidden)renderTags(mood);
     sc.dataset.scarf=S.scarf?'1':'0';sc.dataset.lights=S.lightsOff?'0':'1';sc.dataset.bed=S.decor&&S.decor.bed?'1':'0';sc.dataset.yarn=S.decor&&S.decor.yarn?'1':'0';sc.dataset.shelf=S.decor&&S.decor.shelf?'1':'0';sc.dataset.shelf2=S.decor&&S.decor.shelf2?'1':'0';renderShelf();
     // the lantern by the owl is the streak: lit today, waiting for today's first task, or out

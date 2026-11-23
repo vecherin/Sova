@@ -558,6 +558,19 @@ h2{font-size:19px;font-family:var(--display)!important;font-weight:700;letter-sp
 @keyframes eatChew{0%,31%{opacity:0;transform:none}35%{opacity:1;transform:none}43%{opacity:1;transform:scale(1.12,.72)}51%{opacity:1;transform:none}59%{opacity:1;transform:scale(1.12,.72)}67%{opacity:1;transform:none}75%{opacity:1;transform:scale(1.12,.72)}83%,90%{opacity:1;transform:none}}
 @keyframes heart{0%{transform:translateY(6px) scale(.4);opacity:0}25%{transform:translateY(-4px) scale(1.15);opacity:1}45%{transform:translateY(-10px) scale(1)}100%{transform:translateY(-34px) scale(.9);opacity:0}}
 
+/* v52: seasons in the window */
+.scene[data-season="winter"] .room .hill1{fill:#E8EDF1;opacity:1}
+.scene[data-season="winter"] .room .hill2{fill:#D7E0E7;opacity:1}
+.scene[data-season="autumn"] .room .hill1{fill:#C9A86E}
+.scene[data-season="autumn"] .room .hill2{fill:#B98F55}
+.scene[data-season="summer"] .room .hill2{fill:#7DA65E}
+.room .snowfall{opacity:0;transition:opacity .6s ease}
+.scene[data-snow="1"] .room .snowfall,.scene[data-season="winter"][data-mood="sulky"] .room .snowfall{opacity:.95}
+.scene[data-season="winter"] .room .rain{display:none}
+.room .snowfall circle{animation:snowFall var(--s,8s) linear var(--d,0s) infinite}
+@keyframes snowFall{0%{transform:translate(0,-30px)}50%{transform:translate(6px,85px)}100%{transform:translate(-2px,200px)}}
+@media (prefers-reduced-motion:reduce){.room .snowfall circle{animation:none}}
+
 /* Today card and task rows, swipes */
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:0 4px}
 .count{font-weight:800;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
