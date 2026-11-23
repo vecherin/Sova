@@ -412,7 +412,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   }
   function renderCalendar(t,isClosed){
     $('calNote').textContent=isClosed?'День закрыт. Плюсиком выбирай дела на завтра.':'Все дела по срокам. Плюсиком бери то, что хочешь сделать сегодня.';
-    const open=S.tasks.filter(x=>!x.done&&x.list!=='inbox'&&!x.repeat);
+    const open=S.tasks.filter(x=>!x.done&&!x.repeat); // v53: «Входящие» too — a task without a list must be findable
     const g={past:[],today:[],tomorrow:[],week:[],later:[],none:[]};
     open.forEach(x=>{if(!x.due)return g.none.push(x);const d=dayDiff(x.due,t);if(d<0)g.past.push(x);else if(d===0)g.today.push(x);else if(d===1)g.tomorrow.push(x);else if(d<=7)g.week.push(x);else g.later.push(x)});
     const by=(a,b)=>(a.due||'9').localeCompare(b.due||'9');
@@ -433,7 +433,9 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       :'<li class="note">Пусто. Кнопка «+» внизу добавляет сюда новые записи.</li>';
   }
   function renderLists(){
-    const rows=S.lists.map(l=>{const n=S.tasks.filter(x=>x.list===l.id&&!x.done).length;
+    const inN=S.tasks.filter(x=>x.list==='inbox'&&!x.done).length;
+    const inboxRow=`<li><button class="lrow" type="button" data-act="go" data-view="list" data-list="inbox"><i class="lic" style="background:var(--muted)">${ic('i-env')}</i><b>Входящие</b><span>${inN||''}</span>${ic('i-chev','chev')}</button></li>`;
+    const rows=inboxRow+S.lists.map(l=>{const n=S.tasks.filter(x=>x.list===l.id&&!x.done).length;
       return `<li><button class="lrow" type="button" data-act="go" data-view="list" data-list="${l.id}"><i class="lic" style="background:${listColor(l.id)}">${ic('i-list')}</i><b>${esc(l.name)}</b><span>${n||''}</span>${ic('i-chev','chev')}</button></li>`}).join('');
     $('listCards').innerHTML=(rows||'<li class="note" style="padding:14px">Списков пока нет. Придумай первый: например, «Дом» или «Учёба».</li>')
       +`<li><button class="lrow add" type="button" data-act="addList"><i class="lic">${ic('i-plus')}</i>Новый список</button></li>`;
@@ -806,11 +808,12 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
 
   let listMenu=false,showListDone=false,gatherSel=[];
   function renderList(t){
-    const l=S.lists.find(x=>x.id===openList);if(!l){go('lists');return}
-    $('listTitle').innerHTML=`<i class="ldot" style="background:${listColor(l.id)}" aria-hidden="true"></i>${esc(l.name)}`;
+    const inbox=openList==='inbox',l=inbox?{id:'inbox',name:'Входящие'}:S.lists.find(x=>x.id===openList);if(!l){go('lists');return}
+    {const mb=document.querySelector('#v-list [data-act="listMenu"]');if(mb)mb.hidden=inbox}
+    $('listTitle').innerHTML=`<i class="ldot" style="background:${inbox?'var(--muted)':listColor(l.id)}" aria-hidden="true"></i>${esc(l.name)}`;
     const open=S.tasks.filter(x=>x.list===l.id&&!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
     const done=S.tasks.filter(x=>x.list===l.id&&x.done);
-    $('listTasks').innerHTML=open.length?open.map(x=>taskRow(x,t,{plus:!x.repeat,lock:closed()})).join(''):'<li class="empty">В списке пока ничего нет. Добавь дело кнопкой «+».</li>';
+    $('listTasks').innerHTML=open.length?open.map(x=>taskRow(x,t,{plus:!x.repeat,lock:closed()})).join(''):(inbox?'<li class="empty">Здесь всё, что записано без списка. Пока пусто.</li>':'<li class="empty">В списке пока ничего нет. Добавь дело кнопкой «+».</li>');
     $('listDone').innerHTML=done.length?`<button class="link" type="button" data-act="toggleListDone">${showListDone?'Скрыть сделанные':'Показать сделанные'} (${done.length})</button>${showListDone?`<ul class="list" style="margin-top:10px">${done.map(x=>taskRow(x,t,{})).join('')}</ul>`:''}`:'';
     $('listDanger').innerHTML=confirmDel===l.id?`<div class="empty" style="text-align:left;align-items:flex-start">Удалить список «${esc(l.name)}»? Его дела переедут во «Входящие».<div class="actions"><button class="secondary" type="button" data-act="delList" data-list="${l.id}">Да, удалить</button><button class="secondary" type="button" data-act="cancelDel">Оставить</button></div></div>`
       :listMenu==='rename'?`<form class="inline" id="renameForm"><input id="renameInput" value="${esc(l.name)}" aria-label="Новое название списка" autocomplete="off"><button type="submit">Сохранить</button></form>`
@@ -949,7 +952,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     syncFields();const d=E.draft;if(!d.title){$('edTitle').focus();$('edTitle').placeholder='Сначала напиши, что нужно сделать';return}
     if(d.repeat&&d.list==='inbox')d.list=S.lists[0]?S.lists[0].id:'inbox';
     if(d.repeat&&d.planned===today()&&!d.done&&!repeatsOn(d,today()))d.planned=null;
-    if(E.id){const i=S.tasks.findIndex(y=>y.id===E.id);if(i>=0){if(S.tasks[i].planned===today()&&d.planned!==today()&&!S.tasks[i].done)unseeToday(d);S.tasks[i]=d}}else{S.tasks.push(d);sayOverride=d.planned===planDay()?'Добавила в план на '+(closed()?'завтра.':'сегодня.'):d.list==='inbox'?'Записала во «Входящие». Разберём потом.':`Добавила в список «${listName(d.list)}».`}
+    if(E.id){const i=S.tasks.findIndex(y=>y.id===E.id);if(i>=0){if(S.tasks[i].planned===today()&&d.planned!==today()&&!S.tasks[i].done)unseeToday(d);S.tasks[i]=d}}else{S.tasks.push(d);sayOverride=d.planned===planDay()?'Добавила в план на '+(closed()?'завтра.':'сегодня.'):d.list==='inbox'?'Записала во «Входящие» — они в «Списках».':`Добавила в список «${listName(d.list)}».`}
     closeEditor();
   }
 
