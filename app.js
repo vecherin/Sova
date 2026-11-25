@@ -1,5 +1,9 @@
 /* Sofia's build: on iPhone in Safari, first ask to put the owl on the Home Screen (Safari and the Home Screen app keep separate data) */
 window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
+// before the first run of a new version, keep the data as it was — «Вернуть из копии» → «Как было до обновления»
+(function(){try{const K=window.SOVA_KEY,B='20c3f00b',raw=localStorage.getItem(K),was=localStorage.getItem(K+'-build');
+  if(was!==B){if(raw)localStorage.setItem(K+'-prev',JSON.stringify({app:'sova',saved:new Date().toISOString(),why:'update',data:JSON.parse(raw)}));localStorage.setItem(K+'-build',B)}
+}catch(e){}})();
 (function(){
   try{
     const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -1045,6 +1049,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='mars'){marsPoke();return}
     else if(a==='bell'){marsBell();return}
     else if(a==='lantern'){sayOverride=lanternTalk()}
+    else if(a==='yarn'){if(view!=='home'||pane!==0)return;$('say').textContent=yarnPlay();return}
     else if(a==='shelf'){const bs=myBooks();sayOverride=!bs.length?'Полочка пока пустая. Книги продаёт Марс в лавке.':pick([`Сейчас читаю «${short(pick(bs).title,26)}». Не оторваться!`,`На полочке ${cnt(bs.length,'книга','книги','книг')}. Читаю, пока ты занята.`,`Перечитываю «${short(pick(bs).title,24)}». Ух-ху!`])}
     else if(a==='feed'){return openCare(true)}
     else if(a==='goal'){return openGoal(id)}
@@ -1648,7 +1653,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   // what she may do in each mood: [class on #scene, how long it stays]
   const ACTS={ok:[['i-twitch',800],['i-shuffle',900],['i-peek',2600],['i-blink2',700]],happy:[['i-twitch',800],['i-blink2',700]],
     sad:[['i-sniff',900]],sulky:[['i-glance',2400]],hungry:[['i-bowl',2200]],sick:[['i-sneeze',900]],sleep:[['i-twitch',800],['i-snore',2400]],angry:[]};
-  const ACT_CLS=['poke','tickle','eat','heal'].concat(...Object.values(ACTS).map(a=>a.map(x=>x[0])));
+  const ACT_CLS=['poke','tickle','eat','heal','play'].concat(...Object.values(ACTS).map(a=>a.map(x=>x[0])));
   let actTimer=null,actUntil=0;
   function owlAct(cls,ms){
     const sc=$('scene');sc.classList.remove(...ACT_CLS);void sc.offsetWidth;sc.classList.add(cls);
@@ -1670,6 +1675,22 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     pokeTimes=pokeTimes.filter(x=>t-x<1800);pokeTimes.push(t);
     if(pokeTimes.length>=3&&(mood==='ok'||mood==='happy')){pokeTimes=[];owlAct('tickle',950);return true}
     owlAct('poke',mood==='sleep'?1900:mood==='sad'?1200:900);return false;
+  }
+  // the yarn: a tap rolls it and the owl plays; the third tap in a row — she has had enough
+  let yarnN=0,yarnT=0,yarnK=0;
+  function yarnRoll(kind){const y=document.querySelector('.decor-yarn');if(!y)return;y.classList.remove('roll','roll2','nudge');void y.getBoundingClientRect();y.classList.add(kind);
+    clearTimeout(y._t);y._t=setTimeout(()=>y.classList.remove(kind),1200)}
+  function yarnPlay(){
+    const mood=$('scene').dataset.mood,t=performance.now();
+    if(t-yarnT>5000)yarnN=0;yarnT=t;
+    if(mood==='sleep'){yarnRoll('nudge');return 'Хр-р… Поиграем утром.'}
+    if(mood==='sick'){yarnRoll('nudge');return 'Сейчас не до игр… Апчхи!'}
+    if(mood==='sulky'){yarnRoll('nudge');return 'Не хочу играть. Я обиделась.'}
+    yarnN++;yarnRoll(yarnN%2?'roll':'roll2');owlAct('play',1100);
+    if(yarnN>=3){yarnN=0;return 'Уууух, наигралась!'}
+    if(mood==='hungry')return 'Поиграла бы ещё, но живот урчит…';
+    if(mood==='sad')return yarnN===1?'Ну… разве что чуть-чуть.':'Немного легче стало.';
+    return ['Лови!','Ух-ху, покатился!','Ещё разок!','Тыц!'][yarnK++%4];
   }
   function heartPop(n){
     if(calmMotion()||view!=='home')return;
@@ -1855,11 +1876,15 @@ ${goalPart}
   /* ---------- Sofia's build only: backup copy and a gentle reminder. Uses the DEMO hooks, which are empty in her build ---------- */
   const BACKUP_EVERY=14*D;
   const bkDay=t=>new Date(t).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+  const COPY_MARK='СОВА-КОПИЯ';
+  function backupPack(){return {app:'sova',saved:new Date().toISOString(),data:S}}
   function backupFile(){
     const d=new Date(),name=`Сова — копия ${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;
-    return new File([JSON.stringify({app:'sova',saved:d.toISOString(),data:S})],name,{type:'application/json'});
+    return new File([JSON.stringify(backupPack())],name,{type:'application/json'});
   }
-  function backupDone(){S.backupAt=Date.now();save();renderBackup();peekSay('Копия сохранена. Теперь мне спокойнее!')}
+  function backupDone(msg){S.backupAt=Date.now();save();renderBackup();peekSay(msg||'Копия сохранена. Теперь мне спокойнее!')}
+  // where to put the copy: Notes (text through the clipboard — quick on iPhone) or Files
+  function backupChoose(){peekSay('Куда сохранить копию?','',[['В Заметки',backupNotes,true],['В Файлы',backupSave],['Не надо']])}
   async function backupSave(){
     const f=backupFile();
     try{
@@ -1868,16 +1893,65 @@ ${goalPart}
     const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);backupDone();
   }
+  function backupText(){return `🦉 Копия совы · ${bkDay(Date.now())} ${new Date().getFullYear()}
+Чтобы вернуть: «Списки» → «Вернуть из копии» → «Вставить из Заметок».
+${COPY_MARK}
+${JSON.stringify(backupPack())}`}
+  function backupNotes(){
+    const txt=backupText(),done=()=>backupDone('Скопировала. Открой «Заметки», создай заметку и вставь.');
+    let p=null;try{p=navigator.clipboard&&navigator.clipboard.writeText(txt)}catch(e){}
+    if(!p)return bkSheet('copy',txt);
+    p.then(done,()=>bkSheet('copy',txt));
+  }
+  // reading a copy back: from a file, from pasted text, or the copy made before the last update
+  function bkParse(raw){
+    if(raw&&typeof raw==='object')return raw.app==='sova'&&raw.data&&raw.data.v===7?raw:null;
+    let t=String(raw||'');const i=t.indexOf(COPY_MARK);if(i>=0)t=t.slice(i+COPY_MARK.length);
+    const a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0||b<a)return null;
+    let o=null;try{o=JSON.parse(t.slice(a,b+1))}catch(e){return null}
+    return o&&o.app==='sova'&&o.data&&o.data.v===7?o:null;
+  }
+  function bkSummary(d){
+    const tasks=(d.tasks||[]).length,diary=(d.diary||[]).length,goals=(d.goals||[]).filter(g=>!g.doneAt).length;
+    return [cnt(tasks,'дело','дела','дел'),diary?cnt(diary,'запись дневника','записи дневника','записей дневника'):'',goals?cnt(goals,'цель','цели','целей'):''].filter(Boolean).join(', ');
+  }
+  function bkRestore(o,what){
+    peekSay(`${what||'Копия'} от ${bkDay(o.saved)}: ${bkSummary(o.data)}. Вернуть? Сегодняшнее заменится.`,'',[['Вернуть',()=>{
+      try{localStorage.setItem(KEY+'-prev',JSON.stringify({app:'sova',saved:new Date().toISOString(),why:'restore',data:S}))}catch(e){}
+      const d=o.data;d.offset=0;d.backupAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}location.reload()},true],['Не надо']]);
+  }
+  function bkPrev(){try{return bkParse(JSON.parse(localStorage.getItem(KEY+'-prev')||'null'))}catch(e){return null}}
+  function backupLoadChoose(){
+    const prev=bkPrev(),acts=[['Вставить из Заметок',()=>bkSheet('paste'),true],['Из файла',backupPick]];
+    if(prev)acts.push([prev.why==='restore'?'Как было до возврата':'Как было до обновления',()=>bkRestore(prev,'Копия')]);
+    peekSay('Откуда вернуть копию?','',acts);
+  }
   function backupPick(){
-    const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+    const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json,text/plain';
     inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();
-      r.onload=()=>{let o=null;try{o=JSON.parse(r.result)}catch(e){}
-        if(!o||o.app!=='sova'||!o.data||o.data.v!==7){peekSay('Это не моя копия. Нужен файл «Сова — копия…».');return}
-        peekSay(`Вернуть всё, как было ${bkDay(o.saved)}? Сегодняшнее заменится.`,'',[['Вернуть',()=>{
-          const d=o.data;d.offset=0;d.backupAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}location.reload()},true],['Не надо']]);
-      };r.readAsText(f)};
+      r.onload=()=>{const o=bkParse(r.result);if(!o){peekSay('Это не моя копия. Нужен файл «Сова — копия…».');return}bkRestore(o)};r.readAsText(f)};
     inp.click();
   }
+  // the sheet: show the text to copy by hand, or a field to paste a copy from Notes
+  let bkEl=null;
+  function bkSheet(mode,txt){
+    if(!bkEl){bkEl=document.createElement('div');bkEl.className='veil';bkEl.id='backupSheet';bkEl.hidden=true;document.body.appendChild(bkEl);
+      bkEl.addEventListener('click',e=>{
+        if(e.target===bkEl)return bkClose();const b=e.target.closest('[data-b]');if(!b)return;
+        if(b.dataset.b==='close')return bkClose();
+        if(b.dataset.b==='read'){const o=bkParse($('bkIn').value);if(!o){$('bkErr').hidden=false;return}bkClose();bkRestore(o)}
+      })}
+    const body=mode==='copy'
+      ?`<h3>Скопируй копию</h3><p class="gmeta">Не получилось скопировать само. Выдели весь текст, скопируй и вставь в «Заметки».</p><textarea readonly rows="8" id="bkOut" style="font-size:13px;font-weight:400">${esc(txt)}</textarea>`
+      :`<h3>Вставить из Заметок</h3><p class="gmeta">Открой заметку с копией, скопируй её целиком и вставь сюда.</p>
+        <textarea rows="6" id="bkIn" style="font-size:13px;font-weight:400" placeholder="🦉 Копия совы…" aria-label="Копия"></textarea><p class="gmeta" id="bkErr" hidden>Не нашла здесь копию. Скопируй заметку целиком.</p>
+        <button class="primary" type="button" data-b="read">Посмотреть копию</button>`;
+    bkEl.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Копия"><div class="ed-top"><span></span><span class="grab"></span><button class="primary ed-save" type="button" data-b="close">Готово</button></div>${body}</div>`;
+    sheetShow(bkEl);document.body.style.overflow='hidden';
+    if(mode==='copy')S.backupAt=Date.now(),save(),renderBackup();
+    if(mode==='paste'&&navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(v=>{const i=$('bkIn');if(i&&!i.value&&(v||'').includes(COPY_MARK))i.value=v}).catch(()=>{});
+  }
+  function bkClose(){sheetHide(bkEl);document.body.style.overflow=''}
   function renderBackup(){
     const n=$('backupNote');if(!n)return;
     n.textContent=S.backupAt?`Последняя копия — ${bkDay(S.backupAt)}.`:'Копий пока не было.';
@@ -1887,15 +1961,15 @@ ${goalPart}
   DEMO.after=()=>{
     if(view==='lists')renderBackup();
     if(view!=='home'&&!tourOn&&backupDue()){S.backupAsk=Date.now();save();
-      setTimeout(()=>peekSay('Сохраним копию наших дел? На всякий случай.','',[['Сохранить',backupSave,true],['Потом']]),600)}
+      setTimeout(()=>peekSay('Сохраним копию наших дел? На всякий случай.','',[['Сохранить',backupChoose,true],['Потом']]),600)}
   };
   DEMO.boot=()=>{
     if(!S.since){S.since=Date.now();save()}
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   };
   Object.assign(DEMO.actions,{
-    backupSave:()=>{backupSave();return 'stop'},
-    backupLoad:()=>{backupPick();return 'stop'}
+    backupSave:()=>{backupChoose();return 'stop'},
+    backupLoad:()=>{backupLoadChoose();return 'stop'}
   });
 
   load();

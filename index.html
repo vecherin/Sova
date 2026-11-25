@@ -167,7 +167,7 @@
         <g transform="translate(14 40)">
         <ellipse cx="166" cy="234" rx="124" ry="13" fill="var(--sage)" opacity=".85"/>
         <g class="decor-bed"><ellipse cx="166" cy="226" rx="76" ry="15" fill="#C0654A"/><ellipse cx="166" cy="222" rx="66" ry="10" fill="#E8D9C3"/><path d="M92 226 q74 20 148 0" stroke="#A9533B" stroke-width="2" fill="none" stroke-dasharray="3 4"/></g>
-        <g class="decor-yarn" transform="translate(262 216)"><circle r="11" fill="#D9A79A"/><path d="M-9 -4 q9 6 18 0 M-10 3 q10 6 20 0 M-4 -10 q6 10 2 20" stroke="#BE8577" stroke-width="1.4" fill="none"/><path d="M9 6 q10 4 14 12" stroke="#D9A79A" stroke-width="2" fill="none" stroke-linecap="round"/></g>
+        <g class="decor-yarn" transform="translate(262 216)" data-act="yarn" role="button" aria-label="Клубок — поиграть"><circle r="17" fill="transparent"/><path class="yarn-tail" d="M9 6 q10 4 14 12" stroke="#D9A79A" stroke-width="2" fill="none" stroke-linecap="round"/><g class="yarn-ball"><circle r="11" fill="#D9A79A"/><path d="M-9 -4 q9 6 18 0 M-10 3 q10 6 20 0 M-4 -10 q6 10 2 20" stroke="#BE8577" stroke-width="1.4" fill="none"/></g></g>
         <ellipse cx="166" cy="234" rx="108" ry="9" fill="none" stroke="var(--paper)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".7"/>
         <ellipse cx="167" cy="231" rx="82" ry="8" fill="#000" opacity=".12"/>
         </g>
@@ -179,8 +179,8 @@
           <rect x="319" y="242" width="6" height="10" rx="1.500" fill="var(--paper)"/><path d="M322 242 v-3" stroke="#5A4130" stroke-width="1" stroke-linecap="round"/><path class="flame lit" d="M322 232 C325 236 325 240 322 241 C319 240 319 236 322 232Z" fill="var(--flame)"/>
           <rect x="309" y="252" width="26" height="5" rx="2" fill="var(--wood-dark)"/></g>
           <g class="spark" fill="#FFE29A"><path d="M300 200 l1.600 4 4 1.600 -4 1.600 -1.600 4 -1.600 -4 -4 -1.600 4 -1.600Z"/><path d="M345 214 l1.300 3.200 3.200 1.300 -3.200 1.300 -1.300 3.200 -1.300 -3.200 -3.200 -1.300 3.200 -1.300Z"/><path d="M340 188 l1 2.500 2.500 1 -2.500 1 -1 2.500 -1 -2.500 -2.500 -1 2.500 -1Z"/></g>
-          <g class="streak-tag"><path d="M314 213 Q298 214 287 233" stroke="var(--wood-dark)" stroke-width="1.100" fill="none" opacity=".7"/><g transform="translate(-7 1) rotate(-8 288 246)"><path d="M276 236 h20 l6 10 -6 10 h-20 q-3 0 -3 -3 v-14 q0 -3 3 -3Z" fill="var(--paper)" stroke="var(--wood-dark)" stroke-width="1.300"/><circle cx="296.500" cy="246" r="1.600" fill="var(--wood-dark)"/><text id="streak" x="285" y="251.500" text-anchor="middle" font-family="Lora,Georgia,serif" font-weight="700" font-size="14" fill="#3A2E26"></text></g></g>
-          <rect x="270" y="196" width="86" height="72" fill="transparent"/></g>
+          <g class="streak-tag"><path d="M314 213 Q303 203 292 207" stroke="var(--wood-dark)" stroke-width="1.100" fill="none" opacity=".7"/><g transform="translate(-11 -39) rotate(-6 288 246) translate(288 246) scale(1.22) translate(-288 -246)"><path d="M276 236 h20 l6 10 -6 10 h-20 q-3 0 -3 -3 v-14 q0 -3 3 -3Z" fill="var(--paper)" stroke="var(--wood-dark)" stroke-width="1.300"/><circle cx="296.500" cy="246" r="1.600" fill="var(--wood-dark)"/><text id="streak" x="285" y="251.500" text-anchor="middle" font-family="Lora,Georgia,serif" font-weight="700" font-size="14" fill="#3A2E26"></text></g></g>
+          <rect x="298" y="196" width="58" height="72" fill="transparent"/></g>
         <svg class="owl-svg" id="owlSvg" x="38" y="14" width="284" height="276" viewBox="0 0 220 214" overflow="visible">
 <defs>
 <radialGradient id="oA-body" cx="38%" cy="28%" r="80%"><stop offset="0" style="stop-color:color-mix(in srgb,var(--owl) 78%,#fff)"/><stop offset=".55" style="stop-color:var(--owl)"/><stop offset="1" style="stop-color:var(--owl-dark)"/></radialGradient>
@@ -366,7 +366,7 @@
         <section class="backup" aria-labelledby="backupH">
       <h2 id="backupH" style="font-size:17px">Копия на всякий случай</h2>
       <p class="note" id="backupNote"></p>
-      <p class="note">Все дела, цели и сова живут только в этом телефоне. Копию можно сохранить в «Файлы» и вернуть, если что-то случится.</p>
+      <p class="note">Все дела, цели и сова живут только в этом телефоне. Копию можно сохранить в «Заметки» или «Файлы» и вернуть, если что-то случится. Перед каждым обновлением сова сама запоминает, как было.</p>
       <div class="backup-row"><button class="secondary" type="button" data-act="backupSave">Сохранить копию</button><button class="ghost" type="button" data-act="backupLoad">Вернуть из копии</button></div>
     </section>
   </div>
