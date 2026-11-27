@@ -1,7 +1,7 @@
 /* Sofia's build: on iPhone in Safari, first ask to put the owl on the Home Screen (Safari and the Home Screen app keep separate data) */
 window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
 // before the first run of a new version, keep the data as it was — «Вернуть из копии» → «Как было до обновления»
-(function(){try{const K=window.SOVA_KEY,B='20c3f00b',raw=localStorage.getItem(K),was=localStorage.getItem(K+'-build');
+(function(){try{const K=window.SOVA_KEY,B='7fc2bb76',raw=localStorage.getItem(K),was=localStorage.getItem(K+'-build');
   if(was!==B){if(raw)localStorage.setItem(K+'-prev',JSON.stringify({app:'sova',saved:new Date().toISOString(),why:'update',data:JSON.parse(raw)}));localStorage.setItem(K+'-build',B)}
 }catch(e){}})();
 (function(){
@@ -115,7 +115,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       });
       S.tails=gap===1&&tails.length?{day:tk,ids:tails}:null;
       S.today={energy:null,minimal:false,plan:null};S.lightsOff=false;
-      S.letters=S.letters.filter(l=>l.kind==='week'&&!l.read);
+      S.letters=S.letters.filter(l=>(l.kind==='week'||l.kind==='mars')&&!l.read);
       if(S.rest)Object.keys(S.rest).forEach(k=>{if(keyToTime(k)<t-14*D)delete S.rest[k]});
       S.day=tk;
     }
@@ -345,9 +345,11 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   }
   function render(){
     tick();
+    libTick();
     streakCheck();
+    medalCheck();
     const st=status(),t=st.t,isClosed=closed(),said=sayOverride;
-    ['home','calendar','mail','lists','list','diary'].forEach(v=>$('v-'+v).hidden=view!==v);
+    ['home','calendar','mail','lists','list','diary','hall','library'].forEach(v=>$('v-'+v).hidden=view!==v);
     $('feathers').textContent=Math.round(S.feathers);
     document.querySelectorAll('.dk[data-view]').forEach(d=>{if(d.dataset.view===view||(view==='list'&&d.dataset.view==='lists'))d.setAttribute('aria-current','page');else d.removeAttribute('aria-current')});
     if(view==='home')renderHome(st,t,isClosed);
@@ -356,6 +358,8 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(view==='lists')renderLists();
     if(view==='diary')renderDiary(t);
     if(view==='list')renderList(t);
+    if(view==='library')renderLibrary();
+    if(view==='hall')$('hallScene').dataset.night=isDark(t)?'1':'0';
     renderGone();
     if(DEMO.after)DEMO.after(); // build hook: the backup reminder in Sofia's build
     save();
@@ -369,7 +373,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     renderWindow();
     const sc=$('scene');const mood=tourOn?(tourI===0?'happy':'ok'):(preview||st.mood);sc.dataset.mood=mood;sc.dataset.food=!tourOn&&!preview&&st.hz==='yellow'?'think':'';sc.dataset.night=isDark(t)?'1':'0';sc.dataset.season=seasonOf(t);sc.dataset.snow=snowDay(t)?'1':'0'; /* v52: dusk and weather follow the season */sc.dataset.all=st.allDone&&!tourOn?'1':'0';
     if(!$('care').hidden)renderTags(mood);
-    sc.dataset.scarf=S.scarf?'1':'0';sc.dataset.lights=S.lightsOff?'0':'1';sc.dataset.bed=S.decor&&S.decor.bed?'1':'0';sc.dataset.yarn=S.decor&&S.decor.yarn?'1':'0';sc.dataset.shelf=S.decor&&S.decor.shelf?'1':'0';sc.dataset.shelf2=S.decor&&S.decor.shelf2?'1':'0';renderShelf();
+    sc.dataset.scarf=S.scarf?'1':'0';sc.dataset.lights=S.lightsOff?'0':'1';sc.dataset.bed=S.decor&&S.decor.bed?'1':'0';sc.dataset.yarn=S.decor&&S.decor.yarn?'1':'0';sc.dataset.shelf=S.decor&&S.decor.shelf?'1':'0';sc.dataset.shelf2=S.decor&&S.decor.shelf2?'1':'0';sc.dataset.door=libOn()?'1':'0';sc.dataset.doorNew=S.doorNew?'1':'0';renderShelf();
     // the lantern by the owl is the streak: lit today, waiting for today's first task, or out
     const ls=lanternState();if(sc.dataset.streak&&sc.dataset.streak!=='on'&&sc.dataset.streak!=='full'&&(ls==='on'||ls==='full')){sc.classList.add('lantern-lit');setTimeout(()=>sc.classList.remove('lantern-lit'),1300)}
     sc.dataset.streak=ls;$('streak').textContent=S.streak||'';
@@ -424,7 +428,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     const out=sec('Срок прошёл',g.past)+sec('Срок сегодня',g.today)+sec('Срок завтра',g.tomorrow)+sec('На этой неделе',g.week)+sec('Позже',g.later)+sec('Без срока',g.none);
     $('calBody').innerHTML=out||'<div class="empty">Дел пока нет. Добавь первое кнопкой «+».</div>';
   }
-  const LETTER_NAME={morning:['Письмо от совы','Поговорим про сегодня'],evening:['Вечернее письмо','Как прошёл день и что завтра'],week:['Письмо: обзор недели','Оглянемся на неделю']};
+  const LETTER_NAME={morning:['Письмо от совы','Поговорим про сегодня'],evening:['Вечернее письмо','Как прошёл день и что завтра'],week:['Письмо: обзор недели','Оглянемся на неделю'],mars:['Записка от Марса','Про старый дом и один ключ']};
   function renderMail(t){
     const lt=unreadLetters();
     $('letterBox').innerHTML=lt.length?lt.map(l=>`<div class="letter"><svg aria-hidden="true"><use href="#i-env"/></svg><div><b>${LETTER_NAME[l.kind][0]}</b><p>${LETTER_NAME[l.kind][1]}</p></div>
@@ -453,26 +457,15 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   const DECOR={yarn:{name:'Клубок',kind:'Играть, когда скучно. Будет лежать в комнате',price:15},bed:{name:'Вязаная лежанка',kind:'Мягкое место для совы',price:30},
     shelf:{name:'Книжная полочка',kind:'Повесим на стену рядом с совой. На неё встанут книги',price:25},
     shelf2:{name:'Вторая полочка',kind:'Висит над первой, ещё на восемь книг',price:25,needs:'shelf'}};
-  // Sofia's classics, one at a time; each has its own spine (colour, height). Eight on a shelf, two shelves at most.
-  const BOOKS=[
-    ['tolstoy-diary','Дневники','Лев Толстой','#6B4E3A',27],['east-eden','К востоку от Эдема','Джон Стейнбек','#4F7A6A',26],
-    ['gone-wind','Унесённые ветром','Маргарет Митчелл','#B5462E',28],['thorn-birds','Поющие в терновнике','Колин Маккалоу','#8C6A8E',25],
-    ['catcher','Над пропастью во ржи','Джером Сэлинджер','#C9A24A',22],['mockingbird','Убить пересмешника','Харпер Ли','#6E8E9D',24],
-    ['captains-daughter','Капитанская дочка','Александр Пушкин','#9A3B3B',21],['pride','Гордость и предубеждение','Джейн Остин','#D48A9A',24],
-    ['jane-eyre','Джейн Эйр','Шарлотта Бронте','#5E6B8C',25],['karenina','Анна Каренина','Лев Толстой','#7A2E3A',28],
-    ['master','Мастер и Маргарита','Михаил Булгаков','#3E3A4E',26],['three-comrades','Три товарища','Эрих Мария Ремарк','#7FA36A',23],
-    ['little-prince','Маленький принц','Антуан де Сент-Экзюпери','#E0B04A',19],['solitude','Сто лет одиночества','Габриэль Гарсиа Маркес','#C0654A',26],
-    ['dorian','Портрет Дориана Грея','Оскар Уайльд','#5E8C8A',23],['crime','Преступление и наказание','Фёдор Достоевский','#4E4E4E',27]
-  ].map(([id,title,author,color,h])=>({id,title,author,color,h}));
-  const BOOK={name:'Книга',price:6,perShelf:8};
-  const myBooks=()=>(S.bookIds||[]).map(id=>BOOKS.find(b=>b.id===id)).filter(Boolean);
-  const shelfRoom=()=>((S.decor&&S.decor.shelf)?BOOK.perShelf:0)+((S.decor&&S.decor.shelf2)?BOOK.perShelf:0);
-  const books=()=>myBooks().length;
-  let booksOpen=false;
+  // v55: the shop's book catalogue is gone — her own books live in the library. A shelf bought before stays in the room
+  // and shows what she reads now and the latest finished books.
+  const BOOK={perShelf:8};
+  const myBooks=()=>{const bs=(S.lib&&S.lib.books)||[];return bs.filter(b=>b.status==='reading').concat(bs.filter(b=>b.status==='done').sort((a,b)=>b.doneAt-a.doneAt))};
   function renderShelf(){
-    const bs=myBooks(),draw=(list,base)=>{let x=14;return list.map(b=>{const r=`<g><title>«${esc(b.title)}», ${esc(b.author)}</title><rect x="${x}" y="${base-b.h}" width="6.600" height="${b.h}" rx="1.400" fill="${b.color}"/><rect x="${x+1.400}" y="${base-b.h+5}" width="3.800" height="1.600" rx=".8" fill="#FFFBF2" opacity=".75"/><rect x="${x+1.400}" y="${base-6}" width="3.800" height="1" fill="#FFFBF2" opacity=".5"/></g>`;x+=7.6;return r}).join('')};
-    $('shelfBooks').innerHTML=draw(bs.slice(0,BOOK.perShelf),150);
-    $('shelfBooks2').innerHTML=draw(bs.slice(BOOK.perShelf,2*BOOK.perShelf),110);
+    const bs=myBooks().map(b=>({title:b.title,author:b.author,color:b.color||SPINES[hashOf(b.title+b.author)%SPINES.length],h:19+hashOf(b.id)%9})),draw=(list,base)=>{let x=14;return list.map(b=>{const r=`<g><title>«${esc(b.title)}»${b.author?', '+esc(b.author):''}</title><rect x="${x}" y="${base-b.h}" width="6.600" height="${b.h}" rx="1.400" fill="${b.color}"/><rect x="${x+1.400}" y="${base-b.h+5}" width="3.800" height="1.600" rx=".8" fill="#FFFBF2" opacity=".75"/><rect x="${x+1.400}" y="${base-6}" width="3.800" height="1" fill="#FFFBF2" opacity=".5"/></g>`;x+=7.6;return r}).join('')};
+    const n1=(S.decor&&S.decor.shelf)?BOOK.perShelf:0,n2=(S.decor&&S.decor.shelf2)?BOOK.perShelf:0;
+    $('shelfBooks').innerHTML=draw(bs.slice(0,n1),150);
+    $('shelfBooks2').innerHTML=draw(bs.slice(n1,n1+n2),110);
   }
   const stock=k=>(S.pantry&&S.pantry[k])||0;
   function renderShop(){
@@ -489,24 +482,21 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     $('shopCare').innerHTML=row('pill','f-pill',PILL,stock('pill')?`<small class="stock">В запасах: ${stock('pill')}</small>`:'')
       +(S.scarf?got('f-scarf',SCARF,'куплен'):row('scarf','f-scarf',SCARF));
     S.decor=S.decor||{};
-    $('shopSoon').innerHTML=Object.entries(DECOR).map(([k,d])=>S.decor[k]?got('f-'+(k==='shelf2'?'shelf':k),d,k.startsWith('shelf')?'куплена':'куплен'):d.needs&&!S.decor[d.needs]?'':row(k,'f-'+(k==='shelf2'?'shelf':k),d)).join('');
-    // books: a chooser of titles; a title on the shelf is marked, a full shelf asks for the second one
-    const room=shelfRoom(),n=books(),mine=new Set(S.bookIds||[]);
-    $('shopBooks').innerHTML=!room?`<li class="note">Сначала нужна книжная полочка: книгам надо где-то стоять.</li>`
-      :`<li class="food"><svg class="fi" aria-hidden="true"><use href="#f-book"/></svg><div><b>Книги</b><small>На полочке ${n} из ${room}. Каждая — ${lv(BOOK.price)}.</small></div><button class="buy" type="button" data-act="booksOpen" aria-expanded="${booksOpen}">${booksOpen?'Скрыть':'Выбрать'}</button></li>`
-      +(booksOpen?BOOKS.map(b=>`<li class="food book"><i class="spine" style="background:${b.color}" aria-hidden="true"></i><div><b>${esc(b.title)}</b><small>${esc(b.author)}</small></div>${mine.has(b.id)?'<span class="soon-tag">на полке</span>':n>=room?'<span class="soon-tag">нет места</span>':`<button class="buy ${S.feathers<BOOK.price?'lack':''}" type="button" data-act="buy" data-food="book" data-book="${b.id}" aria-label="Купить «${esc(b.title)}», ${lv(BOOK.price)}">${BOOK.price}${ic('i-leaf','fea')}</button>`}</li>`).join(''):'');
+    $('shopSoon').innerHTML=Object.entries(DECOR).map(([k,d])=>S.decor[k]?got('f-'+(k==='shelf2'?'shelf':k),d,k.startsWith('shelf')?'куплена':'куплен'):k.startsWith('shelf')||(d.needs&&!S.decor[d.needs])?'':row(k,'f-'+k,d)).join(''); // v55: room shelves are no longer sold
+    // v55: for the library — shelves for the bookcase (two come with the key)
+    $('shopBooksH').hidden=!libOn();
+    $('shopBooks').innerHTML=!libOn()?'':S.lib.shelves>=SHELF_MAX?got('f-shelf',LIBSHELF,'все полки на месте'):row('libshelf','f-shelf',Object.assign({},LIBSHELF,{kind:`${LIBSHELF.kind}. Сейчас полок: ${S.lib.shelves} из ${SHELF_MAX}`}));
   }
-  let bookPick=null;
   function buy(k){
     const seed=k.startsWith('seed_')?k.slice(5):null;
-    const it=FOOD[k]||(k==='pill'?PILL:k==='scarf'?SCARF:k==='book'?BOOK:seed&&SEEDS[seed]?{price:seedPrice(seed)}:DECOR[k]||null);if(!it)return;
-    if(k==='book'&&(!bookPick||books()>=shelfRoom()||(S.bookIds||[]).includes(bookPick)))return;
+    const it=FOOD[k]||(k==='pill'?PILL:k==='scarf'?SCARF:k==='libshelf'?LIBSHELF:seed&&SEEDS[seed]?{price:seedPrice(seed)}:DECOR[k]||null);if(!it)return;
+    if(k==='libshelf'&&(!libOn()||S.lib.shelves>=SHELF_MAX))return;
     if(DECOR[k]&&DECOR[k].needs&&!(S.decor&&S.decor[DECOR[k].needs]))return;
     if(marsAway)marsBack();
     if(S.feathers<it.price){marsSay=marsLine('lack');return marsShrug()}
-    S.feathers-=it.price;marsSay=marsLine(seed?'seed':k==='book'?'book':k==='pill'&&S.sick?'cure':'buy');marsPurr();
+    S.feathers-=it.price;marsSay=marsLine(seed?'seed':k==='pill'&&S.sick?'cure':'buy');marsPurr();
     if(seed){S.pantry[k]=stock(k)+1;sayOverride=sillGoals().length>=POTS?'Семечко в запасах. Посадим, когда на подоконнике будет место.':waitingGoals().length?'Семечко есть! Посадим ждущую цель у окна?':'Семечко есть! Нажми «+» и выбери «Цель».';return}
-    if(k==='book'){const b=BOOKS.find(y=>y.id===bookPick);S.bookIds=(S.bookIds||[]).concat(b.id);sayOverride=pick([`«${short(b.title,26)}»! Почитаю перед сном.`,`Ух-ху, «${short(b.title,26)}»! Обожаю.`,`«${short(b.title,24)}» — на полочку. Спасибо!`]);return}
+    if(k==='libshelf'){S.lib.shelves++;sayOverride='Новая полка в библиотеке! Места для книг стало больше.';return}
     if(DECOR[k]){S.decor=S.decor||{};S.decor[k]=true;sayOverride=k==='yarn'?'Клубок! Буду гонять его по комнате.':k==='shelf'?'Полочка! Осталось поставить на неё книги.':k==='shelf2'?'Вторая полочка! Места хватит на целую библиотеку.':'Лежанка! Какая мягкая, спасибо.';return}
     if(k==='scarf'){S.scarf=true;sayOverride='Какой тёплый шарф! Спасибо, теперь мне ничего не страшно.';return}
     if(k==='pill'&&S.sick){S.sick=null;S.missStreak=0;sayOverride='Ой, сразу полегчало! Спасибо, что вылечила меня.';return}
@@ -1044,13 +1034,24 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     else if(a==='sky'){sayOverride=S.goals.some(g=>g.doneAt)?'Звёзды в небе — твои достигнутые цели.':'Здесь будут загораться звёзды — твои достигнутые цели.'}
     else if(a==='lights'){S.lightsOff=!S.lightsOff;const sl=status().mood==='sleep';
       sayOverride=S.lightsOff?(sl?'М-м… Спасибо. В темноте спится слаще.':'Гирлянда погасла. Нажми на неё ещё раз — зажжётся.'):(sl?'Ой… Кто зажёг свет? Я же сплю.':'Гирлянда горит. Так уютнее!')}
-    else if(a==='buy'){bookPick=b.dataset.book||null;buy(b.dataset.food)}
-    else if(a==='booksOpen'){booksOpen=!booksOpen}
+    else if(a==='buy'){buy(b.dataset.food)}
     else if(a==='mars'){marsPoke();return}
     else if(a==='bell'){marsBell();return}
     else if(a==='lantern'){sayOverride=lanternTalk()}
+    else if(a==='door'){S.doorNew=false;return go('hall')}
+    else if(a==='lockedDoor'){$('hallSay').textContent=pick(['Заперто. Ключ — у Марса в лавке.','Дёргаю ручку… заперто. Марс говорит, там пыльно.','За этой дверью тихо. Ключ — у Марса.']);return}
+    else if(a==='outside'){$('hallSay').textContent=pick(['Дверь на улицу. Погуляем, когда потеплеет?','За дверью — сад и тропинка. Сова пока домоседка.']);return}
+    else if(a==='wardrobe'){$('hallSay').textContent=pick(['Пальто, шляпа и шарф прежнего хозяина. Марс их бережёт.','Сапоги у двери — на случай дождя.']);return}
+    else if(a==='fire'){return fireTap()}
+    else if(a==='woodpile'){const n=S.lib.logs||0;libSayNow=n?`В поленнице ${cnt(n,'полено','полена','поленьев')}. Они спасут камин в день без чтения.`:'Поленница пустая. Прочитаешь на половину нормы больше — появится полено про запас.';return render()}
+    else if(a==='libOwl'){libSayNow=status().mood==='sleep'?'Хр-р… (сова спит над книжкой)':LIB_OWL[libOwlN++%LIB_OWL.length];return render()}
+    else if(a==='portrait'){libSayNow='Это прежний хозяин дома, старый филин-книжник. Марс говорит, он прочитал все книги в городе.';return render()}
+    else if(a==='bookNew'){return libSheet('new')}
+    else if(a==='book'){return libSheet('book',id)}
+    else if(a==='bookLog'){return libSheet('log',id)}
+    else if(a==='normSet'){return libSheet('norm')}
     else if(a==='yarn'){if(view!=='home'||pane!==0)return;$('say').textContent=yarnPlay();return}
-    else if(a==='shelf'){const bs=myBooks();sayOverride=!bs.length?'Полочка пока пустая. Книги продаёт Марс в лавке.':pick([`Сейчас читаю «${short(pick(bs).title,26)}». Не оторваться!`,`На полочке ${cnt(bs.length,'книга','книги','книг')}. Читаю, пока ты занята.`,`Перечитываю «${short(pick(bs).title,24)}». Ух-ху!`])}
+    else if(a==='shelf'){const bs=myBooks(),r=bs.find(b=>b.status==='reading');sayOverride=!bs.length?(libOn()?'Полочка пока пустая. Здесь будут книги, которые ты читаешь, — их ставим в библиотеке.':'Полочка пока пустая.'):r?`Ты сейчас читаешь «${short(r.title,26)}». Мне тоже интересно!`:`На полочке ${cnt(bs.length,'книга','книги','книг')}. Остальные — в библиотеке.`}
     else if(a==='feed'){return openCare(true)}
     else if(a==='goal'){return openGoal(id)}
     else if(a==='plant'){return startPlant()}
@@ -1095,7 +1096,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
    document.addEventListener('pointerup',()=>{es=null},{passive:true})}
 
   /* ---------- conversations (mirror the «Сценарии» sheet) ---------- */
-  const TALKS={morning:{title:'Утренний разговор',reward:3},evening:{title:'Вечерний разговор',reward:3},week:{title:'Обзор недели',reward:15},intro:{title:'Знакомство',reward:12},chat:{title:'Разговор с совой',reward:0},goal:{title:'Новая цель',reward:0},harvest:{title:'Цель достигнута',reward:20},goalcheck:{title:'Разговор о цели',reward:0}};
+  const TALKS={morning:{title:'Утренний разговор',reward:3},evening:{title:'Вечерний разговор',reward:3},week:{title:'Обзор недели',reward:15},intro:{title:'Знакомство',reward:12},chat:{title:'Разговор с совой',reward:0},goal:{title:'Новая цель',reward:0},harvest:{title:'Цель достигнута',reward:20},goalcheck:{title:'Разговор о цели',reward:0},mars:{title:'Записка от Марса',reward:0}};
   let T=null;
   const box=()=>$('answers');
   /* v37: smooth talk (Илья: the screen jumped on every answer). The answers panel keeps its height while it is empty,
@@ -1165,7 +1166,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(!letter(kind)&&kind==='morning'){S.letters.push({id:uid(),kind,day:today(),read:false})}
     T={kind,goal,free:kind==='week'&&!letter('week')};$('chatTitle').textContent=TALKS[kind].title;$('chatSub').textContent=kind==='intro'?'сова рассказывает, как тут всё устроено':(S.owlName||'');
     $('msgs').innerHTML='';boxReset();sheetShow($('chat'));document.body.style.overflow='hidden';
-    kind==='morning'?U1():kind==='evening'?V1():kind==='week'?N1():kind==='goal'?G1():kind==='harvest'?H1():kind==='goalcheck'?K1():C1();
+    kind==='morning'?U1():kind==='evening'?V1():kind==='week'?N1():kind==='goal'?G1():kind==='harvest'?H1():kind==='goalcheck'?K1():kind==='mars'?Mr1():C1();
   }
   function closeTalk(finished){
     if(!T)return;
@@ -1174,6 +1175,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
       const l=letter(T.kind);if(l)l.read=true;
       if(T.kind==='intro'){S.onboarded=true;S.startDay=today()}
       else if(T.kind==='morning'){} // the morning talk gives leaves, but no longer lights the lantern
+      else if(T.kind==='mars'){libOpen();sayOverride='Ой, дверь! Марс подарил ключ? Пойдём посмотрим библиотеку — нажми на круглую дверь.'}
       else if(T.kind==='week'){S.week.due=at(now(),19,7);S.week.postponed=0;S.missed=[];S.week.lastDay=today()}
       const toWin=T.kind==='goal'||T.kind==='harvest';view='home';if(toWin)setTimeout(()=>showPane(1),0);else{setTimeout(()=>showPane(0),0);if(T.kind!=='chat'&&T.kind!=='goalcheck')setTimeout(cheer,250)}
     }
@@ -1519,7 +1521,26 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   function Vsoft(){say(pick(['Ничего. Сегодня просто такой день. Дела не убегут, утром я про них напомню.','Отдыхай. Дела подождут, утром посмотрим, что взять.']));T.adj=-1;T.ev.soft=true;later(V6,800)}
   function eveLimit(){const e=T.ev;let n=3;if(BAD.includes(e.mood)||(e.total>0&&e.done===0)||(S.lightUntil&&now()<S.lightUntil))n=2;return Math.max(1,n+(T.adj||0))}
   // v46 (Ilya): before tomorrow — a line for the diary, optional, asked once per talk
-  function V6(){if(T.diaryAsked)return V6t();T.diaryAsked=true;
+  // v55: before the diary — reading: what page she reached, the log for the fire, a log from the woodpile on a day without reading
+  function Vread(next){const L=S.lib,n=L.norm,p=readToday(),rd=libBooks('reading');
+    const days=()=>cnt(L.streak,'день','дня','дней');
+    const fireOffer=()=>{if(fireState()==='lit')return next();
+      if(L.ready===today()){say('Бросим полено в огонь прямо сейчас?');
+        return buttons([['Бросить',()=>{L.ready=null;fireFor(today());say(`Пш-ш! Камин горит ${days()} подряд.`);later(next,600)}],['Брошу сама в библиотеке',next]])}
+      if((L.logs||0)>0&&L.streak){say(`Сегодня до нормы не дошли, камин тлеет. Подбросить полено из поленницы? Там ${L.logs}.`);
+        return buttons([['Подбросить',()=>{L.logs--;fireFor(today());say(`Камин горит ${days()} подряд. В запасе ${L.logs}.`);later(next,600)}],['Не надо',()=>{say('Хорошо. Разожжём заново, когда почитаешь.');later(next,500)}]])}
+      next()};
+    if(n&&p>=n){say(`Сегодня прочитано ${pg(p)} — норма есть!`);return later(fireOffer,600)}
+    if(!rd.length)return fireOffer();
+    say(p?`Сегодня уже ${pg(p)}. Читала ещё?`:'Читала сегодня?');
+    const ask=b=>{say(b.kind==='paper'?`До какой страницы дошла в «${short(b.title,30)}»?`:`Сколько процентов прочитано в «${short(b.title,30)}»?`);
+      textInput(b.kind==='paper'?`Страница, сейчас ${b.pos||0}`:`Процент, сейчас ${b.pos||0}`,v=>{if(v===null)return fireOffer();const x=parseInt(String(v).replace(/[^0-9]/g,''),10);
+        if(isNaN(x)){say('Не поняла число. Запишешь потом в библиотеке.');return later(fireOffer,500)}
+        say(setProgress(b,x)||'Записала.');later(fireOffer,700)},'Передумала')};
+    buttons(rd.slice(0,3).map(b=>[`Да, «${short(b.title,24)}»`,()=>ask(b)]).concat([['Не читала',()=>{say(pick(['Ничего, книги подождут.','Бывает. Завтра почитаем.']));later(fireOffer,500)}]]));
+  }
+  function V6(){if(libOn()&&!T.readAsked&&(libBooks('reading').length||S.lib.norm)){T.readAsked=true;return Vread(V6)}
+    if(T.diaryAsked)return V6t();T.diaryAsked=true;
     say(pick(['Что важного было сегодня? Пара слов — для дневника.','Запишем в дневник, что сегодня было важного?']));
     textInput('Что было важного',v=>{if(v){diaryAdd(v);say(pick(['Записала в дневник.','Сохранила. Дневник на полке слева.']))}later(V6t,v?600:200)},'Сегодня без записи')}
   function V6t(){
@@ -1653,7 +1674,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   // what she may do in each mood: [class on #scene, how long it stays]
   const ACTS={ok:[['i-twitch',800],['i-shuffle',900],['i-peek',2600],['i-blink2',700]],happy:[['i-twitch',800],['i-blink2',700]],
     sad:[['i-sniff',900]],sulky:[['i-glance',2400]],hungry:[['i-bowl',2200]],sick:[['i-sneeze',900]],sleep:[['i-twitch',800],['i-snore',2400]],angry:[]};
-  const ACT_CLS=['poke','tickle','eat','heal','play'].concat(...Object.values(ACTS).map(a=>a.map(x=>x[0])));
+  const ACT_CLS=['poke','tickle','eat','heal','play','tangle'].concat(...Object.values(ACTS).map(a=>a.map(x=>x[0])));
   let actTimer=null,actUntil=0;
   function owlAct(cls,ms){
     const sc=$('scene');sc.classList.remove(...ACT_CLS);void sc.offsetWidth;sc.classList.add(cls);
@@ -1678,7 +1699,7 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
   }
   // the yarn: a tap rolls it and the owl plays; the third tap in a row — she has had enough
   let yarnN=0,yarnT=0,yarnK=0;
-  function yarnRoll(kind){const y=document.querySelector('.decor-yarn');if(!y)return;y.classList.remove('roll','roll2','nudge');void y.getBoundingClientRect();y.classList.add(kind);
+  function yarnRoll(kind){const y=document.querySelector('.decor-yarn');if(!y)return;y.classList.remove('roll','nudge');void y.getBoundingClientRect();y.classList.add(kind);
     clearTimeout(y._t);y._t=setTimeout(()=>y.classList.remove(kind),1200)}
   function yarnPlay(){
     const mood=$('scene').dataset.mood,t=performance.now();
@@ -1686,8 +1707,10 @@ window.SOVA_KEY='sova-sofia-v1'; // her own storage, apart from the prototype
     if(mood==='sleep'){yarnRoll('nudge');return 'Хр-р… Поиграем утром.'}
     if(mood==='sick'){yarnRoll('nudge');return 'Сейчас не до игр… Апчхи!'}
     if(mood==='sulky'){yarnRoll('nudge');return 'Не хочу играть. Я обиделась.'}
-    yarnN++;yarnRoll(yarnN%2?'roll':'roll2');owlAct('play',1100);
-    if(yarnN>=3){yarnN=0;return 'Уууух, наигралась!'}
+    yarnN++;
+    // the third tap in a row: she gets tangled in the thread and flops down (Ilya, v55: play like a cat)
+    if(yarnN>=3){yarnN=0;yarnRoll('nudge');owlAct('tangle',2400);return 'Уууух, наигралась!'}
+    yarnRoll('roll');owlAct('play',1100);
     if(mood==='hungry')return 'Поиграла бы ещё, но живот урчит…';
     if(mood==='sad')return yarnN===1?'Ну… разве что чуть-чуть.':'Немного легче стало.';
     return ['Лови!','Ух-ху, покатился!','Ещё разок!','Тыц!'][yarnK++%4];
@@ -1873,6 +1896,236 @@ ${goalPart}
       view='home';render();showPane(1,true);setTimeout(()=>openGoal(g.id),350);return}
   });
 
+  /* ---------- v55: the library behind the round door ----------
+     S.lib = {key, shelves, books:[{id,title,author,kind:'paper'|'ebook',pages,pos,status:'reading'|'want'|'done',added,doneAt}],
+              norm (pages a day), log:{day:pages}, paidDay, ready (day whose log waits on the hearth), extraDay, extraN,
+              logs (woodpile, up to 5), fireDay (last day the fire was lit), streak, free (the first book is Mars's gift)}
+     S.medals = {tasks:[n…], read:[n…]} — once each, for streaks of days.
+     Reading feeds the owl only through leaves: +4 for the daily norm (like one task), +15 for a finished book; a book costs 10.
+     The fire is not the lantern: it never touches the owl's mood. */
+  const BOOK_PRICE=10,BOOK_DONE=15,NORM_LEAVES=4,PILE_MAX=5,SHELF_MAX=4,LIBSHELF={name:'Полка в библиотеку',kind:'Ещё одна полка в книжный шкаф',price:20};
+  const MEDAL_STEPS=[1,5,10,20,30,40,50,100,200,300,400,500,1000];
+  const SPINES=['#6B4E3A','#4F7A6A','#B5462E','#8C6A8E','#C9A24A','#6E8E9D','#9A3B3B','#D48A9A','#5E6B8C','#7A2E3A','#3E3A4E','#7FA36A','#C0654A','#5E8C8A'];
+  const hashOf=s=>{let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))%100003;return h};
+  const libOn=()=>!!(S.lib&&S.lib.key);
+  const libBooks=st=>(S.lib&&S.lib.books||[]).filter(b=>!st||b.status===st);
+  const pagesOf=b=>b.kind==='paper'?b.pages:(b.pages||300);
+  const yday=()=>dayKey(now()-D);
+  const readToday=()=>S.lib&&S.lib.log&&S.lib.log[today()]||0;
+  const fireState=()=>!S.lib?'out':S.lib.fireDay===today()?'lit':S.lib.fireDay===yday()&&S.lib.streak?'ember':'out';
+  const pg=n=>cnt(n,'страница','страницы','страниц');
+  function libOpen(){
+    S.lib=Object.assign({key:now(),shelves:2,books:[],norm:null,log:{},logs:0,fireDay:null,streak:0,free:true},S.lib||{});S.lib.key=S.lib.key||now();
+    S.doorNew=true;
+  }
+  // midnight: a log left on the hearth still counts for its day; a day without fire puts it out
+  function libTick(){
+    const tk=today();
+    if(S.onboarded&&!S.lib&&S.startDay&&S.startDay!==tk&&!S.letters.some(l=>l.kind==='mars')&&!tourOn){S.letters.push({id:uid(),kind:'mars',day:tk,read:false});S.marsNote=true}
+    if(!S.lib)return;const L=S.lib;
+    if(L.ready&&L.ready!==tk){if(L.fireDay!==L.ready)fireFor(L.ready);L.ready=null}
+    if(L.streak&&L.fireDay&&L.fireDay!==tk&&L.fireDay!==yday()){if(L.streak>=2)L.outDay=tk;L.streak=0}
+    Object.keys(L.log||{}).forEach(k=>{if(keyToTime(k)<now()-90*D)delete L.log[k]});
+  }
+  function fireFor(day){const L=S.lib,prev=dayKey(keyToTime(day)-D+H*3);L.streak=L.fireDay===prev?(L.streak||0)+1:1;L.fireDay=day}
+  // the daily norm: a log for the fire and four leaves; every +50% over it — a spare log for the woodpile (two a day at most)
+  function normCheck(){
+    const L=S.lib,n=L.norm,p=readToday(),tk=today(),said=[];if(!n)return said;
+    if(p>=n&&L.paidDay!==tk){L.paidDay=tk;gain(NORM_LEAVES);if(L.fireDay!==tk)L.ready=tk;said.push(L.fireDay===tk?'Норма на сегодня есть!':'Норма есть! Полено ждёт у камина — брось его в огонь.')}
+    if(L.extraDay!==tk){L.extraDay=tk;L.extraN=0}
+    const earned=p>n?Math.min(2,Math.floor((p-n)/(n*.5))):0,add=earned-L.extraN;
+    if(add>0){const room=PILE_MAX-(L.logs||0),put=Math.min(add,room);L.logs=(L.logs||0)+put;L.extraN=earned;
+      said.push(put?`Ещё ${cnt(put,'полено','полена','поленьев')} в поленницу — про запас.`:'Поленница полная. Запаса хватит надолго!')}
+    return said;
+  }
+  // progress: paper books — the page she reached; e-books — percent (counted in pages by the book's rough size)
+  function setProgress(b,v){
+    const L=S.lib,old=b.pos||0;let val=Math.max(0,Math.round(v));
+    if(b.kind==='paper')val=Math.min(val,b.pages);else val=Math.min(val,100);
+    const delta=b.kind==='paper'?val-old:Math.round((val-old)/100*pagesOf(b));
+    b.pos=val;if(b.status==='want'&&val>0)b.status='reading';
+    const tk=today();L.log=L.log||{};L.log[tk]=Math.max(0,(L.log[tk]||0)+delta);
+    const said=[];
+    if(delta>0)said.push(`+${pg(delta)} сегодня.`);
+    if(b.status!=='done'&&((b.kind==='paper'&&val>=b.pages)||(b.kind!=='paper'&&val>=100)))said.push(finishBook(b));
+    return said.concat(normCheck()).join(' ');
+  }
+  function finishBook(b){b.status='done';b.doneAt=now();b.pos=b.kind==='paper'?b.pages:100;gain(BOOK_DONE);
+    return `«${short(b.title,28)}» дочитана! +${lv(BOOK_DONE)}. Ставлю на полку прочитанных.`}
+  // the medals: one for each step of a streak, for tasks (the lantern) and for reading (the fire)
+  function medalCheck(){
+    if(!libOn())return; // medals live in the library: they start with Mars's key, counting the streak she already has
+    S.medals=S.medals||{tasks:[],read:[]};const fresh=[];
+    [['tasks',S.streak||0],['read',S.lib&&S.lib.streak||0]].forEach(([k,s])=>MEDAL_STEPS.forEach(n=>{if(n<=s&&!S.medals[k].includes(n)){S.medals[k].push(n);fresh.push([k,n])}}));
+    if(!fresh.length||tourOn)return;
+    const top=fresh[fresh.length-1],what=top[0]==='tasks'?'за дела':'за чтение';
+    const txt=fresh.length===1?`Новая медаль ${what}: ${cnt(top[1],'день','дня','дней')} подряд! Она в библиотеке.`:`Новые медали: ${fresh.map(f=>f[1]).join(', ')} дней подряд! Они в библиотеке.`;
+    if(view==='library')libSayNow=libSayNow?libSayNow+' '+txt:txt;else sayOverride=sayOverride?sayOverride+' '+txt:txt;
+  }
+  /* ---------- drawing ---------- */
+  const SHELF_W=300; // v57: shelves scroll like a feed; a book is as thick as in life: ~1 px for 18 pages, 112–134 px tall
+  const thick=b=>Math.max(6,Math.min(40,Math.round(pagesOf(b)*.042))); // 300 pages ≈ 13 px for a 125 px tall book — about 1:10, as in life
+  function spine(b){
+    const t=thick(b),h=110+hashOf(b.id)%26,col=b.color||SPINES[hashOf(b.title+b.author)%SPINES.length];
+    return `<button class="bk${b.status==='reading'?' reading':''}${t<11?' thin':''}" type="button" data-act="book" data-id="${b.id}" style="width:${t}px;height:${h}px;background-color:${col}" aria-label="«${esc(b.title)}»${b.author?', '+esc(b.author):''}${b.status==='reading'?', читаю сейчас':''}"><span>${esc(b.title)}</span>${b.status==='reading'?'<i class="rb"></i>':''}</button>`;
+  }
+  function layoutShelves(){
+    const L=S.lib,rows=[];let r=0,x=0;const order=libBooks('done').concat(libBooks('reading'),libBooks('want'));let over=0;
+    for(let i=0;i<L.shelves;i++)rows.push([]);
+    order.forEach(b=>{const t=thick(b)+2;
+      while(r<L.shelves&&x+t>SHELF_W){r++;x=0}
+      if(r>=L.shelves){over++;return}rows[r].push([b,x]);x+=t});
+    return {rows,over};
+  }
+  function renderLibrary(){
+    if(!libOn())return;const L=S.lib,sc=$('libScene'),st=status(),fs=fireState();
+    sc.dataset.fire=fs;sc.dataset.ready=L.ready===today()&&L.fireDay!==today()?'1':'0';sc.dataset.night=isDark(now())?'1':'0';sc.dataset.sleep=st.mood==='sleep'?'1':'0';
+    $('woodLogs').innerHTML=[[136,233],[148,233],[160,233],[142,224.5],[154,224.5]].slice(0,L.logs||0).map(([x,y])=>`<g><rect x="${x-8}" y="${y-4.5}" width="15" height="9" rx="4.5" fill="#7A5236" transform="rotate(${(x%3)-1} ${x} ${y})"/><circle cx="${x+5}" cy="${y}" r="4.2" fill="#C69C6D"/><circle cx="${x+5}" cy="${y}" r="2" fill="none" stroke="#8C6A48" stroke-width=".8"/></g>`).join('')
+      +(!(L.logs)?'<text x="148" y="252" text-anchor="middle" font-size="7" font-family="Nunito,sans-serif" font-weight="700" fill="var(--wood-dark)" opacity=".7">пусто</text>':'');
+    const {rows,over}=layoutShelves();
+    // shelves she has hold her books (the shelf scrolls up and down); the others still keep the old owner's things
+    const OLD=['<svg viewBox="0 0 120 70" aria-hidden="true"><rect x="22" y="64" width="22" height="6" rx="2" fill="#8C6A48"/><circle cx="33" cy="38" r="24" fill="#6E8E9D"/><path d="M18 26 q10 8 8 24 M38 18 q9 12 4 28" stroke="#9FB49A" stroke-width="5" fill="none"/><circle cx="33" cy="38" r="24" fill="none" stroke="#C9A24A" stroke-width="2.4"/><path d="M76 70 h26 M76 22 h26 M80 70 l18 -48 M98 70 l-18 -48" stroke="#8C6A48" stroke-width="3" fill="none"/><path d="M82 26 h14 l-7 16Z M82 66 h14 l-7 -12Z" fill="#E8C9A0"/></svg>',
+      '<svg viewBox="0 0 120 70" aria-hidden="true"><rect x="10" y="58" width="72" height="12" rx="2" fill="#6A5A4E"/><rect x="16" y="46" width="62" height="12" rx="2" fill="#857360"/><rect x="22" y="36" width="50" height="10" rx="2" fill="#7A6A5A"/><circle cx="98" cy="58" r="10" fill="none" stroke="#C9A24A" stroke-width="2.4"/><path d="M98 48 v-14" stroke="#C9A24A" stroke-width="2"/></svg>'];
+    $('libShelves').innerHTML=[0,1,2,3].map(i=>i<L.shelves
+      ?`<div class="bc-shelf">${rows[i].map(([b])=>spine(b)).join('')||'<span class="bc-empty">'+(i===0?'Здесь встанут твои книги':'')+'</span>'}</div>`
+      :`<div class="bc-shelf old">${OLD[(i-L.shelves)%2]}<span class="bc-old">Полка у Марса · ${lv(LIBSHELF.price)}</span></div>`).join('');
+    $('libWho').textContent=S.owlName||'Сова';
+    const lp=$('libPager');document.querySelectorAll('#libDots .rdot').forEach((d,i)=>d.classList.toggle('on',i===libPane));
+    $('libSay').textContent=libSayNow||libLine(st,over);libSayNow=null;
+    // today
+    const n=L.norm,p=readToday();
+    $('libStreak').textContent=L.streak?`камин горит ${cnt(L.streak,'день','дня','дней')}`:'';
+    $('libToday').innerHTML=!n?`<div class="empty">Задай норму на день — сколько страниц хочешь читать. Выполнила — камин разгорается.<button class="primary" type="button" data-act="normSet">Задать норму</button></div>`
+      :`<div class="lib-norm"><div class="lib-norm-top"><b>${pg(p)}</b><span>из ${n}</span><button class="link" type="button" data-act="normSet">изменить норму</button></div>
+        <span class="pbar"><b style="width:${Math.min(100,Math.round(p/n*100))}%"></b></span>
+        <p class="note">${L.ready===today()&&L.fireDay!==today()?'Полено готово — нажми на камин, чтобы бросить его в огонь.':fs==='lit'?`Камин горит. Ещё ${cnt(Math.max(0,Math.ceil(n*1.5)-p),'страница','страницы','страниц')} — и полено в поленницу.`.replace(/Ещё 0 страниц — и полено в поленницу\./,'Сегодня всё прочитано с запасом!'):`До нормы ${pg(Math.max(0,n-p))}.`} В поленнице: ${L.logs||0} из ${PILE_MAX}.</p></div>`;
+    const row=b=>{const pct=b.kind==='paper'?Math.round((b.pos||0)/b.pages*100):(b.pos||0),col=b.color||SPINES[hashOf(b.title+b.author)%SPINES.length];
+      const prog=b.status==='done'?`дочитана ${new Date(b.doneAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}`:b.kind==='paper'?`стр. ${b.pos||0} из ${b.pages}`:`${b.pos||0}%${b.pages?` · около ${b.pages} стр.`:''}`;
+      return `<li class="brow"><i class="bspine" style="background:${col}" aria-hidden="true"></i><button class="rbody" type="button" data-act="book" data-id="${b.id}"><div class="rtitle">${esc(b.title)}</div><div class="rmeta"><span>${b.author?esc(b.author)+' · ':''}${prog}</span></div>${b.status==='reading'?`<span class="pbar"><b style="width:${pct}%"></b></span>`:''}</button>
+        ${b.status==='reading'?`<button class="plus" type="button" data-act="bookLog" data-id="${b.id}" aria-label="Записать прочитанное: ${esc(b.title)}">+</button>`:'<span></span>'}</li>`};
+    const rd=libBooks('reading'),wt=libBooks('want'),dn=libBooks('done').sort((a,b)=>b.doneAt-a.doneAt);
+    $('libReading').innerHTML=rd.length?rd.map(row).join(''):'<li class="note" style="padding:14px">Сейчас ничего не читаешь. Добавь книгу — она встанет на полку.</li>';
+    $('libWantSec').hidden=!wt.length;$('libWant').innerHTML=wt.map(row).join('');
+    $('libDoneSec').hidden=!dn.length;$('libDoneN').textContent=dn.length||'';$('libDone').innerHTML=dn.map(row).join('');
+    document.querySelector('.lib-add').textContent=L.free?'+ Добавить книгу · первая — подарок Марса':`+ Добавить книгу · ${lv(BOOK_PRICE)}`;
+    $('medals').innerHTML=['tasks','read'].map(k=>`<div class="medal-row">${MEDAL_STEPS.map(n=>medalSvg(n,k,(S.medals&&S.medals[k]||[]).includes(n))).join('')}</div>`).join('');
+  }
+  let libSayNow=null,libOwlN=0,libPane=0;
+  function libShow(i,smooth){libPane=i;const lp=$('libPager');lp.scrollTo({left:i*lp.clientWidth,behavior:smooth&&!calm()?'smooth':'auto'});document.querySelectorAll('#libDots .rdot').forEach((d,k)=>d.classList.toggle('on',k===i))}
+  function libLine(st,over){
+    const L=S.lib,n=L.norm,p=readToday(),fs=fireState();
+    if(st.mood==='sleep')return 'Хр-р… Задремала над книжкой.';
+    if(L.outDay===today()&&!p)return 'Камин погас за ночь. Почитаем — и разожжём его снова?';
+    if(!L.books.length)return 'Полки пустые. Поставим твою первую книгу?';
+    if(over)return `Полки заполнены: ещё ${cnt(over,'книга','книги','книг')} не поместилась. Новая полка — у Марса.`;
+    if(!n)return 'Сколько страниц в день хочешь читать? Задай норму — и камин будет гореть.';
+    if(L.ready===today()&&L.fireDay!==today())return 'Норма есть! Нажми на камин — брось полено в огонь.';
+    if(fs==='lit')return L.streak>1?`Камин горит ${cnt(L.streak,'день','дня','дней')} подряд. Как уютно!`:'Камин горит. Как уютно читать у огня!';
+    if(fs==='ember')return `Камин тлеет. До нормы ${pg(Math.max(0,n-p))}.`;
+    return p?`Уже ${pg(p)}. До нормы ${pg(Math.max(0,n-p))} — и разожжём камин.`:'Камин пока не горит. Почитаем немножко?';
+  }
+  const LIB_OWL=['Ух-ху! Не отвлекай, тут самое интересное.','Совы читают медленно — зато всё запоминают.','В очках я похожа на прежнего хозяина. Правда?','Люблю шорох страниц. И треск дров.','Знаешь, как пахнут старые книги? Ванилью и пылью.'];
+  const MEDAL_MAT=n=>n>=1000?['#6A5ACD','#C9C1F5','#2A2270','#2A2A5A']:n>=300?['#C9962A','#F2CC5C','#5A3F06','#B03030']:n>=100?['#8E959C','#DFE3E7','#3A4046','#5A4A8A']:n>=20?['#9C6B2F','#CF9A52','#3E2A0E','#3F6FB0']:n>=5?['#B8643A','#E08F5F','#4A2210','#C0504D']:['#B07A4A','#D9A46C','#5A3A1C','#7A9A5A'];
+  function medalSvg(n,kind,on){
+    const [o,i,ink,rib]=MEDAL_MAT(n),emb=kind==='tasks'
+      ?`<path d="M27 25 q3 -4 6 0" stroke="${ink}" stroke-width="1.3" fill="none"/><rect x="25.5" y="25" width="9" height="11" rx="1.5" fill="none" stroke="${ink}" stroke-width="1.3"/><path d="M30 28 C31.5 30 31.5 32 30 33 C28.5 32 28.5 30 30 28Z" fill="${ink}"/>`
+      :`<path d="M22 27 L30 29 L38 27 V36 L30 38 L22 36Z" fill="none" stroke="${ink}" stroke-width="1.3" stroke-linejoin="round"/><path d="M30 29 V38" stroke="${ink}" stroke-width="1.1"/><path d="M24.5 30 l3.5 1 M24.5 32.5 l3.5 1 M32 31 l3.5 -1 M32 33.5 l3.5 -1" stroke="${ink}" stroke-width=".8"/>`;
+    return `<div class="medal ${on?'':'off'}" title="${on?'':'Ещё не получена: '}${cnt(n,'день','дня','дней')} подряд"><svg viewBox="0 0 60 66" aria-hidden="true">
+      <path d="M22 2 h8 l-4 18 h-8Z" fill="${on?rib:'var(--line)'}"/><path d="M38 2 h-8 l4 18 h8Z" fill="${on?rib:'var(--line)'}" opacity=".8"/>
+      ${n>=1000?`<polygon points="30,14 46,24 50,40 30,56 10,40 14,24" fill="${on?o:'var(--line)'}"/>`:`<circle cx="30" cy="34" r="18" fill="${on?o:'var(--line)'}"/>`}
+      <circle cx="30" cy="34" r="13.5" fill="${on?i:'var(--surface)'}" stroke="${on?ink:'var(--line)'}" stroke-width=".8" ${on?'':'stroke-dasharray="2 2"'}/>
+      <g opacity="${on?1:.5}">${emb.replaceAll(ink,on?ink:'var(--muted)')}</g></svg><span>${n}</span></div>`;
+  }
+  /* ---------- the sheet: new book, a book, the norm ---------- */
+  let libEl=null,bookDel=null,newKind='paper',newStatus='reading';
+  function libSheet(mode,id){
+    if(!libEl){libEl=$('libSheet');libEl.addEventListener('click',libSheetClick);libEl.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form');if(f)libSheetSubmit(f.dataset.f)})}
+    const b=id&&S.lib.books.find(x=>x.id===id);let body;
+    if(mode==='new'){newKind='paper';newStatus='reading';body=newBookForm()}
+    else if(mode==='norm')body=`<h3>Норма на день</h3><p class="gmeta">Сколько страниц хочешь читать в день? Электронные книги я считаю по примерному числу страниц.</p>
+      <form data-f="norm" class="lib-form"><div class="chips">${[10,20,30,50].map(v=>`<button type="button" class="chip" data-norm="${v}">${v}</button>`).join('')}</div>
+      <label>Страниц в день<input id="normIn" type="number" inputmode="numeric" min="1" max="1000" value="${S.lib.norm||20}"></label><button class="primary" type="submit">Сохранить</button></form>`;
+    else if(b&&mode==='log')body=`<h3>${esc(b.title)}</h3><p class="gmeta">${b.kind==='paper'?`До какой страницы дочитала? Сейчас — ${b.pos||0} из ${b.pages}.`:`Сколько процентов прочитано? Сейчас — ${b.pos||0}%.`}</p>
+      <form data-f="log" data-id="${b.id}" class="lib-form"><label>${b.kind==='paper'?'Страница':'Процент'}<input id="logIn" type="number" inputmode="numeric" min="0" max="${b.kind==='paper'?b.pages:100}" value="${b.pos||''}" placeholder="${b.pos||0}"></label>
+      <button class="primary" type="submit">Записать</button><button class="secondary" type="button" data-b="finish" data-id="${b.id}">Дочитала книгу!</button></form>`;
+    else if(b)body=`<h3>${esc(b.title)}</h3><p class="gmeta">${b.author?esc(b.author)+' · ':''}${b.kind==='paper'?`бумажная, ${b.pages} стр.`:`электронная${b.pages?`, около ${b.pages} стр.`:''}`}</p>
+      ${b.status==='done'?`<p class="gmeta">Дочитана ${new Date(b.doneAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}.</p>`
+       :`<p class="gmeta">${b.kind==='paper'?`Страница ${b.pos||0} из ${b.pages}`:`Прочитано ${b.pos||0}%`}.</p><div class="actions"><button class="primary" type="button" data-b="log" data-id="${b.id}">${b.status==='want'?'Начать читать':'Записать прочитанное'}</button>${b.status==='reading'?`<button class="secondary" type="button" data-b="pause" data-id="${b.id}">Отложить в «Хочу прочитать»</button>`:''}</div>`}
+      <button class="link danger" type="button" data-b="del" data-id="${b.id}">${bookDel===b.id?'Точно убрать? Нажми ещё раз':'Убрать с полки'}</button>`;
+    if(!body)return;
+    libEl.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Библиотека"><div class="ed-top"><span></span><span class="grab"></span><button class="primary ed-save" type="button" data-b="close">Готово</button></div>${body}</div>`;
+    sheetShow(libEl);document.body.style.overflow='hidden';
+    const f=libEl.querySelector('#logIn')||libEl.querySelector('#bkTitle');if(f&&mode!=='book')setTimeout(()=>f.focus(),60);
+  }
+  function newBookForm(){
+    const cost=S.lib.free?'Первая книга — подарок Марса.':S.feathers>=BOOK_PRICE?`Книга стоит ${lv(BOOK_PRICE)}. Дочитаешь — вернётся ${BOOK_DONE}.`:`Книга стоит ${lv(BOOK_PRICE)}, а у тебя ${lv(Math.floor(S.feathers))}. Сделай пару дел — и поставим.`;
+    return `<h3>Новая книга</h3><form data-f="new" class="lib-form">
+      <label>Название<input id="bkTitle" autocomplete="off" maxlength="80" placeholder="Например, «Три товарища»"></label>
+      <label>Автор<input id="bkAuthor" autocomplete="off" maxlength="60" placeholder="можно не писать"></label>
+      <div class="seg" role="group" aria-label="Какая книга"><button type="button" data-kind="paper" aria-pressed="${newKind==='paper'}">Бумажная</button><button type="button" data-kind="ebook" aria-pressed="${newKind==='ebook'}">Электронная</button></div>
+      <label id="bkPagesL">${newKind==='paper'?'Сколько страниц':'Примерно страниц — можно не писать'}<input id="bkPages" type="number" inputmode="numeric" min="1" max="5000" placeholder="${newKind==='paper'?'320':'для толщины на полке'}"></label>
+      <div class="seg" role="group" aria-label="Куда поставить"><button type="button" data-st="reading" aria-pressed="${newStatus==='reading'}">Читаю сейчас</button><button type="button" data-st="want" aria-pressed="${newStatus==='want'}">Хочу прочитать</button></div>
+      <p class="gmeta" id="bkErr" hidden></p><p class="gmeta">${cost}</p>
+      <button class="primary" type="submit">Поставить на полку</button></form>`;
+  }
+  function libClose(){sheetHide(libEl);document.body.style.overflow='';bookDel=null}
+  function libSheetClick(e){
+    if(e.target===libEl)return libClose();
+    const k=e.target.closest('[data-kind]');if(k){newKind=k.dataset.kind;libEl.querySelectorAll('[data-kind]').forEach(x=>x.setAttribute('aria-pressed',x===k));
+      $('bkPagesL').firstChild.textContent=newKind==='paper'?'Сколько страниц':'Примерно страниц — можно не писать';$('bkPages').placeholder=newKind==='paper'?'320':'для толщины на полке';return}
+    const s=e.target.closest('[data-st]');if(s){newStatus=s.dataset.st;libEl.querySelectorAll('[data-st]').forEach(x=>x.setAttribute('aria-pressed',x===s));return}
+    const nb=e.target.closest('[data-norm]');if(nb){$('normIn').value=nb.dataset.norm;return}
+    const b=e.target.closest('[data-b]');if(!b)return;const a=b.dataset.b,x=b.dataset.id&&S.lib.books.find(y=>y.id===b.dataset.id);
+    if(a==='close')return libClose();
+    if(a==='log'&&x){if(x.status==='want'){x.status='reading';save()}return libSheet('log',x.id)}
+    if(a==='pause'&&x){x.status='want';save();libClose();libSayNow=`«${short(x.title,26)}» подождёт в «Хочу прочитать».`;return render()}
+    if(a==='finish'&&x){libSayNow=finishBook(x);libClose();save();return render()}
+    if(a==='del'&&x){if(bookDel!==x.id){bookDel=x.id;return libSheet('book',x.id)}S.lib.books=S.lib.books.filter(y=>y.id!==x.id);libClose();libSayNow=`Убрала «${short(x.title,26)}» с полки.`;save();return render()}
+  }
+  function libSheetSubmit(f){
+    if(f==='norm'){const v=parseInt($('normIn').value,10);if(!(v>0))return;S.lib.norm=Math.min(1000,v);const said=normCheck();libClose();libSayNow=[`Норма — ${pg(S.lib.norm)} в день. Камин будет ждать!`].concat(said).join(' ');save();return render()}
+    if(f==='log'){const form=libEl.querySelector('form'),x=S.lib.books.find(y=>y.id===form.dataset.id),v=parseInt($('logIn').value,10);if(!x||isNaN(v))return;
+      const said=setProgress(x,v);libClose();libSayNow=said||'Записала.';save();return render()}
+    if(f==='new'){const t=$('bkTitle').value.trim(),au=$('bkAuthor').value.trim(),pgs=parseInt($('bkPages').value,10),err=$('bkErr');
+      const fail=m=>{err.textContent=m;err.hidden=false};
+      if(!t)return fail('Напиши название книги.');
+      if(newKind==='paper'&&!(pgs>0))return fail('Сколько в ней страниц? Без этого не посчитать, где ты.');
+      if(!S.lib.free&&S.feathers<BOOK_PRICE)return fail(`Не хватает листьев: книга стоит ${lv(BOOK_PRICE)}.`);
+      const b={id:uid(),title:t.slice(0,80),author:au.slice(0,60),kind:newKind,pages:pgs>0?Math.min(5000,pgs):null,pos:0,status:newStatus,added:now(),doneAt:null};
+      const gift=S.lib.free;if(gift)S.lib.free=false;else S.feathers-=BOOK_PRICE;
+      S.lib.books.push(b);libClose();libSayNow=(gift?'Подарок Марса! ':'')+`«${short(t,28)}» на полке.`+(S.lib.norm?'':' Теперь задай норму на день.');
+      if(layoutShelves().over)libSayNow+=' Ой, полки заполнены — новую продаёт Марс.';
+      save();return render()}
+  }
+  // the hearth and the woodpile
+  function fireTap(){
+    const L=S.lib,sc=$('libScene');
+    if(L.ready===today()&&L.fireDay!==today()){L.ready=null;fireFor(today());save();
+      if(calm()){libSayNow='Пш-ш! Огонь разгорелся.';return render()}
+      sc.classList.add('throw');setTimeout(()=>{sc.classList.remove('throw');libSayNow=L.streak>1?`Пш-ш! Огонь разгорелся. Камин горит ${cnt(L.streak,'день','дня','дней')} подряд!`:'Пш-ш! Огонь разгорелся.';render();
+        sc.classList.add('blaze');setTimeout(()=>sc.classList.remove('blaze'),1300)},560);return}
+    if(fireState()==='lit'){libSayNow=pick(['Тепло… Ух-ху.','Огонь горит. Можно читать дальше.','Слышишь, как трещат дрова?']);return render()}
+    if((L.logs||0)>0){libSayNow=`Камин ещё не горит. Подбросить полено из поленницы? Там ${L.logs}.`;render();
+      return peekSay(`Подбросить полено из поленницы? Там ${L.logs}.`,'',[['Подбросить',pileThrow,true],['Не надо']])}
+    libSayNow=L.norm?`Камин разгорится, когда прочитаешь ${pg(Math.max(0,L.norm-readToday()))}.`:'Задай норму на день — и камин будет гореть в дни чтения.';render();
+  }
+  function pileThrow(){const L=S.lib;if(!(L.logs>0)||L.fireDay===today())return;L.logs--;fireFor(today());save();
+    libSayNow=`Полено из поленницы — в огонь. Камин горит ${cnt(L.streak,'день','дня','дней')}. В запасе ${L.logs}.`;render();
+    const sc=$('libScene');if(!calm()&&view==='library'){sc.classList.add('blaze');setTimeout(()=>sc.classList.remove('blaze'),1300)}}
+  /* ---------- Mars's note: the story of the house and the key (shown once, to Sofia too) ---------- */
+  function Mr1(){$('chatSub').textContent='кот Марс';
+    say('Сударыня, простите за беспокойство. Это Марс, из лавки.');
+    later(()=>{say('Позвольте рассказать про этот дом. Он старый. Прежде здесь жил филин-книжник, а я служил у него много лет.');
+      buttons([['Расскажите!',Mr2],['Вот как? Интересно',Mr2]])},700)}
+  function Mr2(){say('Хозяин уехал путешествовать, а комнаты так и стоят запертые. Пыль, тишина… Ключи остались у меня.');
+    later(()=>{say('Самая дорогая мне комната — библиотека. Книги хозяина разъехались по свету, полки пустые. Думаю, им пора наполниться вашими книгами.');
+      buttons([['Библиотека? Как здорово!',Mr3]])},900)}
+  function Mr3(){say('Примите ключ — подарок на новоселье. Дверь круглая, рядом с совой. В библиотеке есть камин: он горит в дни, когда вы читаете.');
+    later(()=>{say('Остальные ключи — у меня в лавке. Ремонт, сударыня, требует расходов. О, замурчательно!');finishBtn('Взять ключ')},900)}
+  // the two library screens: swipe or dots, like the owl's room
+  $('libDots').addEventListener('click',e=>{const d=e.target.closest('[data-lpane]');if(d)libShow(+d.dataset.lpane,true)});
+  $('libPager').addEventListener('scroll',()=>{const lp=$('libPager'),i=Math.round(lp.scrollLeft/Math.max(1,lp.clientWidth));if(i!==libPane){libPane=i;document.querySelectorAll('#libDots .rdot').forEach((d,k)=>d.classList.toggle('on',k===i))}},{passive:true});
+
   /* ---------- Sofia's build only: backup copy and a gentle reminder. Uses the DEMO hooks, which are empty in her build ---------- */
   const BACKUP_EVERY=14*D;
   const bkDay=t=>new Date(t).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
@@ -1976,7 +2229,7 @@ ${JSON.stringify(backupPack())}`}
   S.goals=S.goals||[];S.pantry=S.pantry||{};S.evenings=S.evenings||[];if(!S.lastFed)S.lastFed=Date.now()+(S.offset||0);if(S.sick===undefined)S.sick=null;
   // v23: garden beds became a pot on the windowsill — old plants turn into indoor ones, unsold harvest into feathers
   S.goals.forEach(g=>{if(PLANT_OLD[g.plant])g.plant=PLANT_OLD[g.plant]});
-  if(typeof S.books==='number'){S.bookIds=BOOKS.slice(0,Math.min(8,S.books)).map(b=>b.id);delete S.books}
+  if(typeof S.books==='number')delete S.books; // v55: the shop's book catalogue is gone; her own books live in the library
   [['geranium','mandarin'],['amaryllis','mango']].forEach(([a,b])=>{const q=S.pantry['seed_'+a];if(q){S.pantry['seed_'+b]=(S.pantry['seed_'+b]||0)+q;delete S.pantry['seed_'+a]}});
   if(S.pantry.crop){S.feathers+=5*S.pantry.crop;delete S.pantry.crop}
   migrateGoals(S); // v27: a goal's stages became real tasks, every goal has a deadline
